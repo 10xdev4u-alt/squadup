@@ -3,6 +3,7 @@ import {
   findUserTeam,
   isCollegeEmail,
   isDuplicateSwipe,
+  orderMatchPair,
   shouldCreateMatch,
 } from "./domain";
 
@@ -79,5 +80,18 @@ describe("findUserTeam", () => {
 
   it("returns null for an empty roster", () => {
     expect(findUserTeam([], "a")).toBeNull();
+  });
+});
+
+describe("orderMatchPair", () => {
+  it("orders the pair deterministically", () => {
+    expect(orderMatchPair("b", "a")).toEqual(["a", "b"]);
+    expect(orderMatchPair("a", "b")).toEqual(["a", "b"]);
+  });
+
+  it("keeps the same pair equal in both directions", () => {
+    expect(orderMatchPair("x", "y").join("|")).toBe(
+      orderMatchPair("y", "x").join("|")
+    );
   });
 });

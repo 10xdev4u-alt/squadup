@@ -50,3 +50,11 @@ export function findUserTeam(teams, userId) {
   const team = teams.find((t) => t.members.includes(userId));
   return team ? team.id : null;
 }
+
+/**
+ * Canonical ordering for a match pair, so the unique index on (userA, userB)
+ * catches both directions and no (a, b) / (b, a) duplicates can exist.
+ */
+export function orderMatchPair(a, b) {
+  return a < b ? [a, b] : [b, a];
+}
