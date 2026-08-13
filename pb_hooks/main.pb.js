@@ -3,12 +3,22 @@
 // into the PocketBase app lifecycle.
 
 const {
+  DEFAULT_COLLEGE_DOMAINS,
   isCollegeEmail,
   isOtpEmailAllowed,
   isDuplicateSwipe,
   shouldCreateMatch,
   orderMatchPair,
 } = require("./domain.js");
+
+// College domains come from ALLOWED_SIGNUP_DOMAIN (comma-separated) when set,
+// else the hardcoded default. Read once at boot — correct for a server process.
+const COLLEGE_DOMAINS = (
+  $os.getenv("ALLOWED_SIGNUP_DOMAIN") || DEFAULT_COLLEGE_DOMAINS.join(",")
+)
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 const COLLEGE_EMAIL_MSG = "Only college email addresses can register.";
 const DUPLICATE_SWIPE_MSG = "You have already swiped on this profile.";
@@ -19,7 +29,7 @@ const OTP_GATE_MSG =
 // users: only college-domain emails may register (§5 Flow 1, §8 API rules)
 onRecordBeforeCreateRequest((e) => {
   const email = e.record.get("email");
-  if (!isCollegeEmail(email)) {
+  if (!isCollegeEmail(email, COLLEGE_DOMAINS)) {
     throw new Error(COLLEGE_EMAIL_MSG);
   }
 }, "users");
