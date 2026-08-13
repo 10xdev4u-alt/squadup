@@ -25,11 +25,21 @@ jobs:
 
       - name: Build
         if: hashFiles('package-lock.json') != ''
-        run: npm run build
+        run: |
+          if [ "$(npm pkg get scripts.build 2>/dev/null)" != "{}" ]; then
+            npm run build
+          else
+            echo "No build script yet — runs once the app scaffold lands (Phase 2)."
+          fi
 
       - name: Lint
         if: hashFiles('package-lock.json') != ''
-        run: npm run lint
+        run: |
+          if [ "$(npm pkg get scripts.lint 2>/dev/null)" != "{}" ]; then
+            npm run lint
+          else
+            echo "No lint script yet — runs once the app scaffold lands (Phase 2)."
+          fi
 
       - name: Bootstrap notice (no app scaffold yet)
         if: hashFiles('package-lock.json') == ''

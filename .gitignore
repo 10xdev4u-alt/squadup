@@ -33,3 +33,6 @@ coverage/
 
 # Freebuff client metadata
 .freebuff/
+
+# Husky internals
+.husky/_

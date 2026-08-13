@@ -6,16 +6,17 @@ once the team exists (kanban, resources, mentor tickets).
 
 ## Files that matter
 
-| File | Role |
-|---|---|
-| `PROPOSAL.md` | **The constitution.** Every task maps to a section (§). Full spec: design tokens (§6), tech stack (§7), PocketBase schema + API rules (§8), screens (§9), matching logic (§10). |
-| `AGENTS.md` | Operating rules for agents: the loop, the two gates, the 12 hard rules, commit conventions. |
-| `.github/ISSUE_TEMPLATE/task.yml` | One issue = one task. Branch name + research note live here. |
-| `.github/pull_request_template.md` | PR body contract. |
-| `.github/workflows/ci.yml` | Build + lint on every PR (activates once the app scaffold lands). |
-| `.githooks/commit-msg` | Strips AI trailers + enforces Conventional Commits with ≤6-word subjects. **The gate that can't be clicked past.** |
-| `landing.html` | Professional landing page on the exact §6 tokens (published on postplan). |
-| `squadup.html` | Earlier creative concept page (dark neon exploration). |
+| File                               | Role                                                                                                                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PROPOSAL.md`                      | **The constitution.** Every task maps to a section (§). Full spec: design tokens (§6), tech stack (§7), PocketBase schema + API rules (§8), screens (§9), matching logic (§10). |
+| `AGENTS.md`                        | Operating rules for agents: the loop, the two gates, the 12 hard rules, commit conventions.                                                                                     |
+| `.github/ISSUE_TEMPLATE/task.yml`  | One issue = one task. Branch name + research note live here.                                                                                                                    |
+| `.github/pull_request_template.md` | PR body contract.                                                                                                                                                               |
+| `.github/workflows/ci.yml`         | Build + lint on every PR (activates once the app scaffold lands).                                                                                                               |
+| `.githooks/commit-msg`             | Strips AI trailers + enforces Conventional Commits with ≤6-word subjects. **The gate that can't be clicked past.**                                                              |
+| `.husky/`                          | Pre-commit hook: lint-staged (Prettier) on staged files. Delegates commit-msg to `.githooks/commit-msg`.                                                                        |
+| `landing.html`                     | Professional landing page on the exact §6 tokens (published on postplan).                                                                                                       |
+| `squadup.html`                     | Earlier creative concept page (dark neon exploration).                                                                                                                          |
 
 ## How the loop works (short version)
 
@@ -36,9 +37,9 @@ Full detail: `AGENTS.md`.
 # git config user.name "Your Name"
 # git config user.email "your@email.com"
 
-# 2. Activate the commit hook
-chmod +x .githooks/commit-msg
-git config core.hooksPath .githooks
+# 2. Install dev tooling (npm install runs the `prepare` script → activates Husky)
+npm install
+#    Husky owns core.hooksPath; .husky/commit-msg delegates to .githooks/commit-msg
 ```
 
 Create the status labels (Settings → Labels), or the issue form will fail on unknown labels:

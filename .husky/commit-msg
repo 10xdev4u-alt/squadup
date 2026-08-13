@@ -1,0 +1,4 @@
+#!/bin/sh
+# SquadUp commit law: Conventional Commits + ≤6-word subjects + no AI co-authors.
+# Husky owns core.hooksPath now, so delegate to the original enforcement script.
+exec .githooks/commit-msg "$1"
