@@ -1,6 +1,7 @@
 // ============================================================================
 // Onboarding skills + role validation — pure, React-free.
-// §4A: skill tags from the registry, min 1 max 5. §8: primaryRole single-select.
+// §4A: skill tags from the registry, min 1 max 5, no duplicates. §8:
+// primaryRole single-select.
 // ============================================================================
 
 import {
@@ -32,6 +33,8 @@ export function validateSkills(values: SkillsFormValues): {
     errors.skills = "Pick at least one skill.";
   } else if (values.skills.length > MAX_SKILLS) {
     errors.skills = `Pick at most ${MAX_SKILLS} skills.`;
+  } else if (new Set(values.skills).size !== values.skills.length) {
+    errors.skills = "Each skill can only be picked once.";
   } else {
     const unknown = values.skills.find((s) => !SKILLS.includes(s));
     if (unknown) {
