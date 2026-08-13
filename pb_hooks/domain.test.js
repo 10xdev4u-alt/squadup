@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isCollegeEmail, isDuplicateSwipe } from "./domain";
+import { isCollegeEmail, isDuplicateSwipe, shouldCreateMatch } from "./domain";
 
 describe("isCollegeEmail", () => {
   it("accepts a valid college address", () => {
@@ -37,5 +37,26 @@ describe("isDuplicateSwipe", () => {
 
   it("allows a fresh pair", () => {
     expect(isDuplicateSwipe([], "a", "b")).toBe(false);
+  });
+});
+
+describe("shouldCreateMatch", () => {
+  it("creates a match when the target already right-swiped the source", () => {
+    const swipes = [{ fromUser: "b", toUser: "a", direction: "right" }];
+    expect(shouldCreateMatch(swipes, "a", "b")).toBe(true);
+  });
+
+  it("does not create a match from a left swipe", () => {
+    const swipes = [{ fromUser: "b", toUser: "a", direction: "left" }];
+    expect(shouldCreateMatch(swipes, "a", "b")).toBe(false);
+  });
+
+  it("does not create a match when the target has not swiped", () => {
+    expect(shouldCreateMatch([], "a", "b")).toBe(false);
+  });
+
+  it("only matches when the incoming swipe is right", () => {
+    const swipes = [{ fromUser: "b", toUser: "a", direction: "right" }];
+    expect(shouldCreateMatch(swipes, "a", "b", "left")).toBe(false);
   });
 });

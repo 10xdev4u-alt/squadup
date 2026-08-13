@@ -23,3 +23,21 @@ export function isCollegeEmail(email) {
 export function isDuplicateSwipe(swipes, fromUser, toUser) {
   return swipes.some((s) => s.fromUser === fromUser && s.toUser === toUser);
 }
+
+/**
+ * True when this swipe completes a mutual right-swipe (the target already
+ * swiped right on the source). The caller is responsible for creating the
+ * match record atomically with the swipe — the unique index is the backstop.
+ */
+export function shouldCreateMatch(
+  swipes,
+  fromUser,
+  toUser,
+  direction = "right"
+) {
+  if (direction !== "right") return false;
+  return swipes.some(
+    (s) =>
+      s.fromUser === toUser && s.toUser === fromUser && s.direction === "right"
+  );
+}
