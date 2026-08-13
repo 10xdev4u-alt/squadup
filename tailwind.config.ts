@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
 const config: Config = {
   content: [
@@ -19,6 +20,20 @@ const config: Config = {
         danger: "var(--color-danger)",
         foreground: "var(--color-text-primary)",
         muted: "var(--color-text-secondary)",
+        // shadcn/ui semantic aliases, all mapping to the §6 tokens above
+        "primary-foreground": "var(--color-text-primary)",
+        card: "var(--color-surface)",
+        "card-foreground": "var(--color-text-primary)",
+        ring: "var(--color-primary)",
+        input: "var(--color-border)",
+        destructive: "var(--color-danger)",
+        "destructive-foreground": "var(--color-text-primary)",
+        "secondary-foreground": "var(--color-text-primary)",
+        "muted-foreground": "var(--color-text-secondary)",
+        accent: "var(--color-primary)",
+        "accent-foreground": "var(--color-text-primary)",
+        popover: "var(--color-elevated)",
+        "popover-foreground": "var(--color-text-primary)",
       },
       fontFamily: {
         display: ["var(--font-space-grotesk)", "Space Grotesk", "sans-serif"],
@@ -34,7 +49,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [animate],
 };
 
 export default config;
