@@ -6,16 +6,13 @@ once the team exists (kanban, resources, mentor tickets).
 
 ## Files that matter
 
-| File                               | Role                                                                                                                                                                            |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PROPOSAL.md`                      | **The constitution.** Every task maps to a section (§). Full spec: design tokens (§6), tech stack (§7), PocketBase schema + API rules (§8), screens (§9), matching logic (§10). |
-| `AGENTS.md`                        | Operating rules for agents: the loop, the two gates, the 12 hard rules, commit conventions.                                                                                     |
-| `.github/ISSUE_TEMPLATE/task.yml`  | One issue = one task. Branch name + research note live here.                                                                                                                    |
-| `.github/pull_request_template.md` | PR body contract.                                                                                                                                                               |
-| `.github/workflows/ci.yml`         | Build + lint on every PR (activates once the app scaffold lands).                                                                                                               |
-| `.githooks/commit-msg`             | Strips AI trailers + enforces Conventional Commits with ≤6-word subjects. **The gate that can't be clicked past.**                                                              |     | `.husky/` | Pre-commit hook: lint-staged (Prettier) + `npm run test` (vitest, TDD-enforced). Delegates commit-msg to `.githooks/commit-msg`. |
-| `landing.html`                     | Professional landing page on the exact §6 tokens (published on postplan).                                                                                                       |
-| `squadup.html`                     | Earlier creative concept page (dark neon exploration).                                                                                                                          |
+| File | Role |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- || `.github/ISSUE_TEMPLATE/task.yml` | One issue = one task. Branch name + research note live here. |
+| `.github/pull_request_template.md` | PR body contract. |
+| `.github/workflows/ci.yml` | Build + lint on every PR (activates once the app scaffold lands). |
+| `.githooks/commit-msg` | Strips AI trailers + enforces Conventional Commits with ≤6-word subjects. **The gate that can't be clicked past.** | | `.husky/` | Pre-commit hook: lint-staged (Prettier) + `npm run typecheck` + `npm run test` (vitest, TDD-enforced). Delegates commit-msg to `.githooks/commit-msg`. |
+| `landing.html` | Professional landing page on the exact §6 tokens (published on postplan). |
+| `squadup.html` | Earlier creative concept page (dark neon exploration). |
 
 ## How the loop works (short version)
 
@@ -26,7 +23,11 @@ once the team exists (kanban, resources, mentor tickets).
 3. **You** review the diff line by line, approve, and merge with a merge commit
    (`--no-ff`). The agent never merges. Ever.
 
-Full detail: `AGENTS.md`.
+Full detail: `AGENTS.md` (kept local-only, see below).
+
+> **Local-only, never pushed:** `PROPOSAL.md` (the constitution) and `AGENTS.md`
+> (agent operating rules) are gitignored working docs — agents read them from disk,
+> they are not part of this repository.
 
 ## One-time setup
 

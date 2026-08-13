@@ -34,5 +34,9 @@ coverage/
 # Freebuff client metadata
 .freebuff/
 
+# Local agent context — NEVER committed or pushed (private working docs)
+PROPOSAL.md
+AGENTS.md
+
 # Husky internals
 .husky/_
