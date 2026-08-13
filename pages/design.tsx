@@ -1,4 +1,23 @@
 import Layout from "@/components/Layout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { fonts, palette, paletteLabels } from "@/lib/tokens";
 
 const swatches = Object.entries(palette) as Array<
@@ -33,6 +52,40 @@ export default function Design() {
           <li key={name}>{name}</li>
         ))}
       </ul>
+
+      <h2 className="mt-8 text-xl font-semibold">Primitives</h2>
+      <div className="mt-4 space-y-6">
+        <div className="flex flex-wrap gap-3">
+          <Button>Primary action</Button>
+          <Button variant="outline">Secondary</Button>
+          <Badge variant="success">Success badge</Badge>
+        </div>
+        <div className="max-w-md">
+          <Card>
+            <CardHeader>
+              <CardTitle>Card title</CardTitle>
+              <CardDescription>Card description</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Label htmlFor="team-name">Team name</Label>
+              <Input id="team-name" placeholder="Team name" />
+            </CardContent>
+          </Card>
+        </div>
+        <div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">Open dialog</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Dialog title</DialogTitle>
+                <DialogDescription>Dialog description</DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
     </Layout>
   );
 }
