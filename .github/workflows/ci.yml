@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  build-lint:
-    name: Build & Lint
+  gate:
+    name: Gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,27 +20,16 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        if: hashFiles('package-lock.json') != ''
         run: npm ci
 
-      - name: Build
-        if: hashFiles('package-lock.json') != ''
-        run: |
-          if [ "$(npm pkg get scripts.build 2>/dev/null)" != "{}" ]; then
-            npm run build
-          else
-            echo "No build script yet — runs once the app scaffold lands (Phase 2)."
-          fi
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
 
       - name: Lint
-        if: hashFiles('package-lock.json') != ''
-        run: |
-          if [ "$(npm pkg get scripts.lint 2>/dev/null)" != "{}" ]; then
-            npm run lint
-          else
-            echo "No lint script yet — runs once the app scaffold lands (Phase 2)."
-          fi
+        run: npm run lint
 
-      - name: Bootstrap notice (no app scaffold yet)
-        if: hashFiles('package-lock.json') == ''
-        run: echo "SquadUp bootstrap — app scaffold not present. CI activates once package-lock.json lands."
+      - name: Build
+        run: npm run build
