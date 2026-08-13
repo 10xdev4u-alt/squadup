@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { isCollegeEmail, isDuplicateSwipe, shouldCreateMatch } from "./domain";
+import {
+  findUserTeam,
+  isCollegeEmail,
+  isDuplicateSwipe,
+  shouldCreateMatch,
+} from "./domain";
 
 describe("isCollegeEmail", () => {
   it("accepts a valid college address", () => {
@@ -58,5 +63,21 @@ describe("shouldCreateMatch", () => {
   it("only matches when the incoming swipe is right", () => {
     const swipes = [{ fromUser: "b", toUser: "a", direction: "right" }];
     expect(shouldCreateMatch(swipes, "a", "b", "left")).toBe(false);
+  });
+});
+
+describe("findUserTeam", () => {
+  it("returns the team id when the user is a member", () => {
+    const teams = [{ id: "t1", members: ["a", "b"] }];
+    expect(findUserTeam(teams, "a")).toBe("t1");
+  });
+
+  it("returns null when the user is in no team", () => {
+    const teams = [{ id: "t1", members: ["b"] }];
+    expect(findUserTeam(teams, "a")).toBeNull();
+  });
+
+  it("returns null for an empty roster", () => {
+    expect(findUserTeam([], "a")).toBeNull();
   });
 });

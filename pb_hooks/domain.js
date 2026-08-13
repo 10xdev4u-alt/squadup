@@ -41,3 +41,12 @@ export function shouldCreateMatch(
       s.fromUser === toUser && s.toUser === fromUser && s.direction === "right"
   );
 }
+
+/**
+ * Returns the id of the team the user currently belongs to, or null.
+ * Backs the single-active-team rule (§2: in any team -> out of the deck).
+ */
+export function findUserTeam(teams, userId) {
+  const team = teams.find((t) => t.members.includes(userId));
+  return team ? team.id : null;
+}
