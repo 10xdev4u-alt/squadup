@@ -10,7 +10,7 @@ const updatedRecord = {
   avatar: null,
   bio: "Full-stack dev, hackathon addict",
   githubUrl: "https://github.com/janedoe",
-  skills: [],
+  skills: ["Frontend", "Backend"],
   primaryRole: "Developer",
   status: "solo",
   lookingFor: "",
@@ -46,6 +46,27 @@ describe("users api", () => {
       id: "u1",
       name: "Jane Doe",
       bio: "Full-stack dev, hackathon addict",
+    });
+  });
+
+  it("sends skills and primaryRole when provided", async () => {
+    const service = makeService({ update: vi.fn(async () => updatedRecord) });
+    const api = createUsersApi(makeClient(service));
+
+    await api.updateProfile("u1", {
+      name: "Jane Doe",
+      bio: "",
+      githubUrl: null,
+      skills: ["Frontend", "Backend"],
+      primaryRole: "Developer",
+    });
+
+    expect(service.update).toHaveBeenCalledWith("u1", {
+      name: "Jane Doe",
+      bio: "",
+      githubUrl: null,
+      skills: ["Frontend", "Backend"],
+      primaryRole: "Developer",
     });
   });
 
