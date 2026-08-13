@@ -1,0 +1,54 @@
+#!/bin/sh
+# SquadUp commit-msg hook
+# 1. Strips any AI/bot attribution trailers (Co-authored-by, "Generated with", 🤖)
+# 2. Enforces Conventional Commits on the subject line
+# Attribution trailers are stripped silently so no AI-signed commit can ever reach
+# the branch; a warning is printed so the human knows authorship is being enforced.
+
+MSG=$1
+
+# Detect attribution BEFORE stripping (we snapshot first — sed edits in place)
+if grep -qE 'Co-authored|Co-Authored-By|Signed-off-by|Generated with|🤖' "$MSG"; then
+  STRIPPED=1
+else
+  STRIPPED=0
+fi
+
+# Strip AI/bot attribution trailers (works on GNU and BSD sed)
+sed -i.bak \
+  -e '/Co-authored-by:/d' \
+  -e '/Co-Authored-By:/d' \
+  -e '/Generated with/d' \
+  -e '/🤖/d' \
+  -e '/Signed-off-by:/d' \
+  "$MSG"
+rm -f "$MSG.bak"
+
+# Enforce Conventional Commits on the subject line
+SUBJECT=$(head -1 "$MSG")
+if ! echo "$SUBJECT" | grep -qE '^(feat|fix|chore|refactor|style|docs|test)(\([a-z0-9-]+\))?: .{1,72}$'; then
+  echo "❌ Bad commit message." >&2
+  echo "   Format: type(scope): description" >&2
+  echo "   Example: feat(swipe): add mutual match detection" >&2
+  echo "   Got:     $SUBJECT" >&2
+  exit 1
+fi
+
+# Enforce a 6-word ceiling on the subject body (after the type/scope prefix)
+BODY=$(echo "$SUBJECT" | sed -E 's/^(feat|fix|chore|refactor|style|docs|test)(\([a-z0-9-]+\))?: //')
+WORD_COUNT=$(printf '%s' "$BODY" | wc -w | tr -d ' ')
+if [ "$WORD_COUNT" -gt 6 ]; then
+  echo "❌ Subject body must be ≤ 6 words (got $WORD_COUNT)." >&2
+  echo "   Example: feat(swipe): detect mutual match with realtime event" >&2
+  echo "   Got:     $BODY" >&2
+  exit 1
+fi
+
+if [ "$STRIPPED" = "1" ]; then
+  echo "⚠️  AI/bot attribution trailer found and stripped from commit message." >&2
+  echo "✅ Subject valid — commit allowed." >&2
+else
+  echo "✅ Commit message OK." >&2
+fi
+
+exit 0

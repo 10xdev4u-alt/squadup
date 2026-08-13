@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SquadUp ⚡ Find your squad. Ship the impossible.</title>
+<style>
+  :root {
+    --bg: #07060f;
+    --bg-2: #0c0a1d;
+    --panel: rgba(255, 255, 255, 0.04);
+    --panel-2: rgba(255, 255, 255, 0.07);
+    --stroke: rgba(255, 255, 255, 0.09);
+    --stroke-2: rgba(255, 255, 255, 0.16);
+    --text: #edeaf9;
+    --muted: #a09cb9;
+    --dim: #6f6b8a;
+    --violet: #8b5cf6;
+    --violet-soft: #a78bfa;
+    --pink: #ec4899;
+    --pink-soft: #f472b6;
+    --cyan: #22d3ee;
+    --cyan-soft: #67e8f9;
+    --lime: #a3e635;
+    --amber: #fbbf24;
+    --red: #fb7185;
+    --grad-hero: linear-gradient(100deg, #a78bfa 0%, #f472b6 45%, #22d3ee 100%);
+    --radius: 18px;
+    --font: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- backdrop: mesh + grid + glow blobs ---------- */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(58rem 34rem at 85% -10%, rgba(139, 92, 246, 0.20), transparent 60%),
+      radial-gradient(46rem 30rem at -10% 20%, rgba(34, 211, 238, 0.12), transparent 55%),
+      radial-gradient(52rem 36rem at 50% 115%, rgba(236, 72, 153, 0.14), transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 55%, var(--bg) 100%);
+  }
+  .backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(70rem 44rem at 50% 0%, #000 30%, transparent 75%);
+  }
+
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.35;
+    z-index: -1;
+    pointer-events: none;
+    animation: drift 16s ease-in-out infinite alternate;
+  }
+  .blob.a { width: 420px; height: 420px; top: -120px; right: -80px; background: var(--violet); }
+  .blob.b { width: 340px; height: 340px; bottom: 6%; left: -120px; background: var(--cyan); animation-delay: -6s; }
+  .blob.c { width: 300px; height: 300px; top: 42%; right: 22%; background: var(--pink); animation-delay: -11s; opacity: 0.22; }
+
+  @keyframes drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to   { transform: translate3d(-60px, 50px, 0) scale(1.15); }
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- nav ---------- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(14px);
+    background: rgba(7, 6, 15, 0.72);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .logo-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: var(--grad-hero);
+    box-shadow: 0 0 22px rgba(244, 114, 182, 0.45);
+    font-size: 17px;
+  }
+  .logo em { font-style: normal; background: var(--grad-hero); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 999px;
+    transition: color .18s, background .18s;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--panel-2); }
+  .nav-cta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .pill {
+    border: 1px solid var(--stroke-2);
+    color: var(--text);
+    background: var(--panel);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 9px 18px;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: transform .15s, border-color .15s, background .15s;
+  }
+  .pill:hover { transform: translateY(-1px); border-color: var(--violet-soft); background: var(--panel-2); }
+  .pill.solid {
+    border: none;
+    background: var(--grad-hero);
+    color: #12081f;
+    box-shadow: 0 6px 24px rgba(236, 72, 153, 0.35);
+  }
+  .pill.solid:hover { background: linear-gradient(100deg, #b794f6 0%, #f9a8d4 45%, #7de8f7 100%); }
+
+  /* ---------- hero ---------- */
+  .hero {
+    padding: 84px 0 40px;
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 48px;
+    align-items: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cyan-soft);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    background: rgba(34, 211, 238, 0.08);
+    padding: 6px 14px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .hero-badge .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--cyan);
+    animation: blink 1.6s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; box-shadow: 0 0 10px var(--cyan); } 50% { opacity: .35; box-shadow: none; } }
+
+  h1 {
+    margin: 22px 0 18px;
+    font-size: clamp(40px, 5.2vw, 66px);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    font-weight: 850;
+  }
+  .grad-text {
+    background: var(--grad-hero);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shine 6s ease-in-out infinite;
+  }
+  @keyframes shine {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 17.5px;
+    max-width: 520px;
+    margin-bottom: 30px;
+  }
+  .sub b { color: var(--text); font-weight: 700; }
+
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 34px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15.5px;
+    font-weight: 800;
+    text-decoration: none;
+    padding: 14px 26px;
+    border-radius: 14px;
+    transition: transform .16s, box-shadow .16s;
+  }
+  .btn.primary {
+    background: var(--grad-hero);
+    color: #12081f;
+    box-shadow: 0 10px 34px rgba(236, 72, 153, 0.4);
+  }
+  .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(236, 72, 153, 0.55); }
+  .btn.ghost {
+    color: var(--text);
+    border: 1px solid var(--stroke-2);
+    background: var(--panel);
+  }
+  .btn.ghost:hover { transform: translateY(-2px); border-color: var(--cyan); }
+
+  /* countdown */
+  .countdown { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .cd-label {
+    font-size: 12.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+  }
+  .cd-units { display: flex; gap: 10px; }
+  .cd {
+    min-width: 74px;
+    text-align: center;
+    padding: 12px 10px 10px;
+    border-radius: 14px;
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .cd .num {
+    font-family: var(--mono);
+    font-size: 27px;
+    font-weight: 800;
+    background: linear-gradient(180deg, #fff, #b9b3e0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .cd .lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); margin-top: 2px; }
+  .cd.hot { border-color: rgba(251, 113, 133, 0.4); box-shadow: 0 0 24px rgba(251, 113, 133, 0.18); }
+  .cd.hot .num { background: linear-gradient(180deg, #fda4af, #fb7185); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  /* ---------- phone mockups ---------- */
+  .phone-stage { position: relative; height: 560px; }
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(4px);
+    opacity: .5;
+  }
+  .orb.o1 { width: 260px; height: 260px; left: -40px; top: 40px; background: radial-gradient(circle, rgba(139,92,246,.55), transparent 70%); animation: pulse-orb 7s ease-in-out infinite; }
+  .orb.o2 { width: 300px; height: 300px; right: -70px; bottom: 0; background: radial-gradient(circle, rgba(34,211,238,.4), transparent 70%); animation: pulse-orb 8s ease-in-out infinite reverse; }
+  @keyframes pulse-orb { 0%,100% { transform: scale(1); opacity: .45; } 50% { transform: scale(1.12); opacity: .7; } }
+
+  .phone {
+    position: absolute;
+    width: 290px;
+    border-radius: 42px;
+    background: linear-gradient(160deg, #141126, #0d0b1e);
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 12px;
+    box-shadow:
+      0 40px 80px -20px rgba(0,0,0,0.7),
+      0 0 0 1px rgba(255,255,255,0.04) inset,
+      0 0 60px rgba(139,92,246,0.15);
+  }
+  .phone .screen {
+    border-radius: 32px;
+    overflow: hidden;
+    background: #0a0817;
+    border: 1px solid rgba(255,255,255,0.06);
+    position: relative;
+  }
+  .notch {
+    position: absolute;
+    top: 9px; left: 50%;
+    transform: translateX(-50%);
+    width: 96px; height: 22px;
+    background: #05040c;
+    border-radius: 999px;
+    z-index: 5;
+  }
+  .phone-a {
+    top: 30px; left: 8px;
+    animation: floaty 7s ease-in-out infinite;
+    z-index: 3;
+  }
+  .phone-b {
+    top: 150px; right: -6px;
+    transform: rotate(4deg) scale(0.94);
+    animation: floaty 8.5s ease-in-out infinite reverse;
+    z-index: 2;
+  }
+  @keyframes floaty {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -16px; }
+  }
+
+  .swipe-card {
+    margin: 40px 14px 0;
+    border-radius: 22px;
+    padding: 18px;
+    background: linear-gradient(165deg, #1b1733 0%, #120f26 100%);
+    border: 1px solid var(--stroke-2);
+    box-shadow: 0 22px 44px -12px rgba(0,0,0,0.6);
+    animation: tilt 9s ease-in-out infinite;
+  }
+  @keyframes tilt {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(2.4deg); }
+    60% { transform: rotate(-2.8deg); }
+  }
+  .avatar {
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+    font-weight: 800;
+    color: #0a0817;
+    background: linear-gradient(135deg, var(--cyan-soft), var(--violet-soft));
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.08), 0 8px 20px rgba(34,211,238,0.25);
+  }
+  .swipe-card .row { display: flex; gap: 13px; align-items: center; margin-bottom: 12px; }
+  .swipe-card h3 { font-size: 17px; letter-spacing: -0.01em; }
+  .swipe-card .role { font-size: 12px; color: var(--cyan-soft); font-weight: 700; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .chip {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--stroke-2);
+    color: var(--muted);
+    background: rgba(255,255,255,0.05);
+  }
+  .chip.c-violet { color: var(--violet-soft); border-color: rgba(139,92,246,.4); background: rgba(139,92,246,.12); }
+  .chip.c-cyan   { color: var(--cyan-soft);   border-color: rgba(34,211,238,.4);  background: rgba(34,211,238,.10); }
+  .chip.c-pink   { color: var(--pink-soft);   border-color: rgba(236,72,153,.4);  background: rgba(236,72,153,.10); }
+  .chip.c-lime   { color: var(--lime);        border-color: rgba(163,230,53,.4);  background: rgba(163,230,53,.10); }
+  .chip.c-amber  { color: var(--amber);       border-color: rgba(251,191,36,.4);  background: rgba(251,191,36,.10); }
+  .one-liner {
+    font-size: 12.5px;
+    color: var(--muted);
+    border-left: 2px solid rgba(255,255,255,0.14);
+    padding-left: 10px;
+    margin: 8px 0 14px;
+  }
+  .swipe-actions { display: flex; justify-content: center; gap: 18px; padding: 6px 0 12px; }
+  .sbtn {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    font-weight: 900;
+    border: 1px solid var(--stroke-2);
+    background: var(--panel-2);
+    color: var(--muted);
+  }
+  .sbtn.skip:hover { border-color: var(--red); color: var(--red); box-shadow: 0 0 18px rgba(251,113,133,.3); }
+  .sbtn.like {
+    color: var(--lime);
+    border-color: rgba(163,230,53,.45);
+    background: rgba(163,230,53,.08);
+    animation: like-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes like-pulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(163,230,53,0); }
+    50% { box-shadow: 0 0 22px rgba(163,230,53,0.45); }
+  }
+
+  .match-toast {
+    position: absolute;
+    left: 50%;
+    bottom: 74px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(12, 10, 26, 0.92);
+    border: 1px solid rgba(244, 114, 182, 0.5);
+    box-shadow: 0 0 34px rgba(236, 72, 153, 0.4);
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    animation: toast-in 3.4s ease-in-out infinite;
+    z-index: 6;
+  }
+  .match-toast .heart { color: var(--pink); animation: beat 1s ease-in-out infinite; display: inline-block; }
+  @keyframes beat { 0%,100% { transform: scale(1); } 30% { transform: scale(1.3); } }
+  @keyframes toast-in {
+    0% { opacity: 0; transform: translateX(-50%) translateY(14px); }
+    14% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  .team-mini {
+    margin: 38px 12px 0;
+    border-radius: 20px;
+    padding: 16px;
+    background: linear-gradient(165deg, #171330, #0f0c22);
+    border: 1px solid var(--stroke-2);
+  }
+  .team-mini .head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .team-ava { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; color: #0a0817; }
+  .team-mini h4 { font-size: 14.5px; }
+  .team-mini .status {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--lime); background: rgba(163,230,53,.1);
+    border: 1px solid rgba(163,230,53,.35);
+    padding: 3px 9px; border-radius: 999px; margin-left: auto;
+  }
+  .mini-members { display: flex; margin: 6px 0 12px; }
+  .mini-members .team-ava { border: 2px solid #0f0c22; margin-right: -8px; }
+  .needed { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+  .needed b { color: var(--amber); }
+  .req-btn {
+    display: block;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 800;
+    color: #0a0817;
+    background: linear-gradient(100deg, var(--cyan-soft), var(--violet-soft));
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .phone-badge {
+    position: absolute;
+    bottom: -6px; left: 18px;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--stroke);
+    padding: 6px 12px;
+    border-radius: 999px;
+    z-index: 6;
+  }
+
+  /* ---------- marquee ---------- */
+  .marquee-band {
+    border-top: 1px solid var(--stroke);
+    border-bottom: 1px solid var(--stroke);
+    background: rgba(255,255,255,0.02);
+    overflow: hidden;
+    padding: 18px 0;
+    margin-top: 56px;
+  }
+  .marquee {
+    display: flex;
+    gap: 14px;
+    width: max-content;
+    animation: scroll-x 34s linear infinite;
+  }
+  .marquee .chip { font-size: 13px; padding: 7px 16px; }
+  @keyframes scroll-x {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ---------- sections ---------- */
+  section { padding: 88px 0 8px; }
+  .sec-head { max-width: 640px; margin-bottom: 44px; }
+  .kicker {
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cyan-soft);
+    margin-bottom: 14px;
+  }
+  h2 {
+    font-size: clamp(30px, 3.6vw, 44px);
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    margin-bottom: 14px;
+  }
+  .sec-head p { color: var(--muted); font-size: 16.5px; }
+
+  /* two modes */
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .mode-card {
+    position: relative;
+    border-radius: var(--radius);
+    padding: 30px;
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    overflow: hidden;
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .mode-card:hover { transform: translateY(-4px); border-color: var(--stroke-2); }
+  .mode-card.vio { box-shadow: 0 18px 50px -20px rgba(139,92,246,.35); }
+  .mode-card.cya { box-shadow: 0 18px 50px -20px rgba(34,211,238,.3); }
+  .mode-card::before {
+    content: "";
+    position: absolute;
+    top: -70px; right: -70px;
+    width: 190px; height: 190px;
+    border-radius: 50%;
+    filter: blur(10px);
+    opacity: .5;
+  }
+  .mode-card.vio::before { background: radial-gradient(circle, rgba(139,92,246,.5), transparent 70%); }
+  .mode-card.cya::before { background: radial-gradient(circle, rgba(34,211,238,.4), transparent 70%); }
+  .mode-num {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+    font-weight: 900;
+    color: #0a0817;
+    margin-bottom: 18px;
+  }
+  .mode-card.vio .mode-num { background: linear-gradient(135deg, var(--violet-soft), var(--pink-soft)); }
+  .mode-card.cya .mode-num { background: linear-gradient(135deg, var(--cyan-soft), var(--violet-soft)); }
+  .mode-card h3 { font-size: 21px; margin-bottom: 8px; letter-spacing: -0.01em; }
+  .mode-card .tagline { color: var(--cyan-soft); font-size: 13px; font-weight: 700; margin-bottom: 14px; }
+  .mode-card ul { list-style: none; display: grid; gap: 9px; margin: 16px 0 20px; }
+  .mode-card li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 14.5px;
+    color: var(--muted);
+  }
+  .mode-card li .tick {
+    flex: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 900;
+    color: #0a0817;
+    margin-top: 1px;
+  }
+  .mode-card.vio li .tick { background: var(--violet-soft); }
+  .mode-card.cya li .tick { background: var(--cyan-soft); }
+  .mode-link {
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .mode-card.vio .mode-link:hover { color: var(--violet-soft); }
+  .mode-card.cya .mode-link:hover { color: var(--cyan-soft); }
+
+  /* workspace / kanban */
+  .kanban-wrap {
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    border-radius: 24px;
+    padding: 26px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kanban-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(40rem 20rem at 20% 0%, rgba(139,92,246,.12), transparent 60%);
+    pointer-events: none;
+  }
+  .kanban-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+  .kanban-top h3 { font-size: 18px; }
+  .kanban-top .team-name { color: var(--muted); font-size: 13.5px; }
+  .kanban-top .team-name b { color: var(--text); }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--lime);
+    border: 1px solid rgba(163,230,53,.35);
+    background: rgba(163,230,53,.08);
+    padding: 7px 14px; border-radius: 999px;
+  }
+  .live-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); animation: blink 1.4s infinite; }
+
+  .kanban { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .col {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--stroke);
+    border-radius: 16px;
+    padding: 12px;
+    min-height: 300px;
+  }
+  .col-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 4px 4px 12px;
+  }
+  .col-head .n {
+    font-size: 11px;
+    color: var(--dim);
+    border: 1px solid var(--stroke-2);
+    border-radius: 999px;
+    padding: 1px 8px;
+  }
+  .col .bar { height: 3px; border-radius: 99px; margin-bottom: 10px; }
+  .kcard {
+    background: linear-gradient(165deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+    border: 1px solid var(--stroke-2);
+    border-radius: 13px;
+    padding: 12px;
+    margin-bottom: 10px;
+    font-size: 12.5px;
+    transition: transform .16s, border-color .16s;
+  }
+  .kcard:hover { transform: translateY(-2px); border-color: var(--violet-soft); }
+  .kcard .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-bottom: 7px;
+  }
+  .kcard .t { font-weight: 700; font-size: 12.5px; line-height: 1.35; }
+  .kcard .meta { display: flex; align-items: center; justify-content: space-between; margin-top: 9px; font-size: 10.5px; color: var(--dim); }
+  .kcard .who { display: flex; align-items: center; gap: 5px; }
+  .kcard .ava-sm { width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; font-size: 9px; font-weight: 800; color: #0a0817; }
+  .tag.t-idea    { color: var(--cyan-soft); background: rgba(34,211,238,.12); }
+  .tag.t-ppt     { color: var(--violet-soft); background: rgba(139,92,246,.14); }
+  .tag.t-proto   { color: var(--pink-soft); background: rgba(236,72,153,.12); }
+  .tag.t-test    { color: var(--amber); background: rgba(251,191,36,.12); }
+  .tag.t-pitch   { color: var(--lime); background: rgba(163,230,53,.12); }
+
+  .kanban-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+    padding: 16px 4px 2px;
+    border-top: 1px dashed var(--stroke-2);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .commit-bars { display: flex; align-items: flex-end; gap: 6px; height: 34px; }
+  .commit-bars i {
+    width: 14px;
+    border-radius: 4px 4px 2px 2px;
+    background: linear-gradient(180deg, var(--cyan-soft), var(--violet));
+    animation: bar-grow 1.1s ease-out both;
+  }
+  @keyframes bar-grow { from { height: 0; } }
+  .commit-bars i:nth-child(1) { height: 12px; animation-delay: .1s; }
+  .commit-bars i:nth-child(2) { height: 20px; animation-delay: .2s; }
+  .commit-bars i:nth-child(3) { height: 16px; animation-delay: .3s; }
+  .commit-bars i:nth-child(4) { height: 30px; animation-delay: .4s; }
+  .commit-bars i:nth-child(5) { height: 24px; animation-delay: .5s; }
+  .commit-bars i:nth-child(6) { height: 34px; animation-delay: .6s; }
+  .commit-bars i:nth-child(7) { height: 18px; animation-delay: .7s; }
+
+  /* resource hub */
+  .hub-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; align-items: stretch; }
+  .hub-panel {
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius);
+    padding: 26px;
+  }
+  .hub-panel h3 { font-size: 18px; margin-bottom: 6px; }
+  .hub-panel .desc { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+  .link-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--stroke-2);
+    border-radius: 14px;
+    padding: 13px 16px;
+    margin-bottom: 18px;
+    font-size: 13.5px;
+    color: var(--dim);
+    font-family: var(--mono);
+  }
+  .link-input .glow { width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+  .link-input u { text-decoration: none; color: var(--cyan-soft); }
+  .domain-row { display: grid; gap: 10px; }
+  .domain-card {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    padding: 13px 15px;
+    transition: transform .16s, border-color .16s;
+  }
+  .domain-card:hover { transform: translateX(4px); border-color: var(--stroke-2); }
+  .domain-logo {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    font-weight: 900;
+    flex: none;
+  }
+  .lg-figma   { background: linear-gradient(135deg, #a855f7, #ec4899); color: #fff; }
+  .lg-github  { background: linear-gradient(135deg, #334155, #0f172a); color: #fff; border: 1px solid rgba(255,255,255,.15); }
+  .lg-canva   { background: linear-gradient(135deg, #22d3ee, #6366f1); color: #fff; }
+  .lg-drive   { background: linear-gradient(135deg, #4ade80, #22c55e); color: #052e16; }
+  .lg-excali  { background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; }
+  .domain-card .d-name { font-weight: 800; font-size: 14px; }
+  .domain-card .d-url { font-size: 11.5px; color: var(--dim); font-family: var(--mono); }
+  .domain-card .d-state {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 11px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .d-state.live { color: var(--cyan-soft); background: rgba(34,211,238,.1); border: 1px solid rgba(34,211,238,.35); }
+  .d-state.card { color: var(--muted); background: rgba(255,255,255,.05); border: 1px solid var(--stroke-2); }
+
+  /* mentor ticket */
+  .ticket {
+    background: linear-gradient(165deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border: 1px solid var(--stroke-2);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+  .ticket .head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .ticket h4 { font-size: 15px; }
+  .t-status {
+    margin-left: auto;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .t-status.open     { color: var(--amber); background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.35); }
+  .t-status.progress { color: var(--cyan-soft); background: rgba(34,211,238,.1); border: 1px solid rgba(34,211,238,.35); }
+  .ticket p { color: var(--muted); font-size: 13.5px; }
+  .ticket .ctx {
+    display: inline-flex;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--violet-soft);
+    background: rgba(139,92,246,.1);
+    border: 1px solid rgba(139,92,246,.3);
+    padding: 5px 11px;
+    border-radius: 999px;
+  }
+  .typing { display: flex; gap: 5px; align-items: center; padding: 10px 4px 2px; }
+  .typing i {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--cyan-soft);
+    animation: typ 1.2s ease-in-out infinite;
+  }
+  .typing i:nth-child(2) { animation-delay: .15s; }
+  .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes typ { 0%,100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
+
+  /* stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 90px;
+  }
+  .stat {
+    text-align: center;
+    padding: 26px 12px;
+    border-radius: var(--radius);
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+  }
+  .stat .big {
+    font-size: 30px;
+    font-weight: 850;
+    letter-spacing: -0.02em;
+    font-family: var(--mono);
+    background: var(--grad-hero);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .stat .lbl { margin-top: 6px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+
+  footer {
+    margin-top: 110px;
+    border-top: 1px solid var(--stroke);
+    padding: 34px 0 44px;
+  }
+  .foot-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    color: var(--dim);
+    font-size: 13.5px;
+  }
+  .foot-inner .logo { font-size: 16px; }
+  .foot-links { display: flex; gap: 18px; }
+  .foot-links a { color: var(--muted); text-decoration: none; font-size: 13.5px; }
+  .foot-links a:hover { color: var(--text); }
+
+  @media (max-width: 980px) {
+    .hero { grid-template-columns: 1fr; padding-top: 56px; }
+    .phone-stage { height: 520px; margin-top: 20px; }
+    .kanban { grid-template-columns: repeat(2, 1fr); }
+    .modes, .hub-grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 560px) {
+    .phone-stage { height: 470px; }
+    .phone { transform: scale(0.9); }
+    .phone-b { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="backdrop"></div>
+<div class="blob a"></div>
+<div class="blob b"></div>
+<div class="blob c"></div>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a class="logo" href="#">
+      <span class="logo-mark">⚡</span>
+      Squad<em>Up</em>
+    </a>
+    <div class="nav-links">
+      <a href="#modes">Discover</a>
+      <a href="#workspace">Workspace</a>
+      <a href="#resources">Resources</a>
+      <a href="#mentor">Mentors</a>
+    </div>
+    <div class="nav-cta">
+      <a class="pill" href="#">Sign in</a>
+      <a class="pill solid" href="#">Join with @college.edu</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <div>
+    <span class="hero-badge"><span class="dot"></span> HackFest 2026 · Team deadline in 48h</span>
+    <h1>Find your squad.<br><span class="grad-text">Ship the impossible.</span></h1>
+    <p class="sub">
+      SquadUp is a hackathon team-formation platform that does <b>both</b> jobs —
+      matching you with the right teammates and giving your team a workspace that
+      actually ships. No team fails because of chaos.
+    </p>
+    <div class="hero-actions">
+      <a class="btn primary" href="#modes">⚡ Start swiping</a>
+      <a class="btn ghost" href="#workspace">Browse open teams →</a>
+    </div>
+    <div class="countdown">
+      <span class="cd-label">HackFest kickoff</span>
+      <div class="cd-units">
+        <div class="cd"><div class="num">47</div><div class="lbl">hrs</div></div>
+        <div class="cd"><div class="num">18</div><div class="lbl">min</div></div>
+        <div class="cd hot"><div class="num">42</div><div class="lbl">sec</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone-stage">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+
+    <div class="phone phone-a">
+      <div class="screen">
+        <div class="notch"></div>
+        <div class="swipe-card">
+          <div class="row">
+            <div class="avatar">AR</div>
+            <div>
+              <h3>Aarav, 21</h3>
+              <div class="role">Full-Stack Dev · “build fast, ship faster”</div>
+            </div>
+          </div>
+          <div class="chip-row">
+            <span class="chip c-violet">⚛ Frontend</span>
+            <span class="chip c-cyan">⚙ Backend</span>
+            <span class="chip c-pink">🤖 AI/ML</span>
+          </div>
+          <div class="one-liner">“Looking for a designer + pitcher to take our AI-diagnosis idea to SIH finals.”</div>
+          <div class="row" style="margin-bottom:0">
+            <span class="chip">📌 Role: Developer</span>
+            <span class="chip">🔗 github.com/aarav</span>
+          </div>
+        </div>
+        <div class="swipe-actions">
+          <div class="sbtn skip">✕</div>
+          <div class="sbtn like">✓</div>
+        </div>
+        <div class="match-toast"><span class="heart">❤</span> It’s a match! · chat open</div>
+      </div>
+    </div>
+    <div class="phone-badge">Mode 1 · Discover swipe</div>
+
+    <div class="phone phone-b">
+      <div class="screen">
+        <div class="notch"></div>
+        <div class="team-mini">
+          <div class="head">
+            <div class="team-ava" style="background:linear-gradient(135deg,#a78bfa,#ec4899)">🤖</div>
+            <h4>MediVision</h4>
+            <span class="status">● Open</span>
+          </div>
+          <p style="font-size:12px;color:var(--muted)">AI triage for rural clinics — 2 devs, 1 designer on board.</p>
+          <div class="mini-members">
+            <div class="team-ava" style="background:linear-gradient(135deg,#67e8f9,#6366f1)">RK</div>
+            <div class="team-ava" style="background:linear-gradient(135deg,#f472b6,#a78bfa)">SM</div>
+            <div class="team-ava" style="background:linear-gradient(135deg,#a3e635,#22d3ee)">+3</div>
+          </div>
+          <div class="needed">Needs: <b>UI/UX Designer</b> · <b>Pitcher</b></div>
+          <div class="req-btn">Request to Join →</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-badge" style="left:auto;right:0;bottom:6px">Mode 2 · Browse teams</div>
+  </div>
+</header>
+
+<div class="marquee-band">
+  <div class="marquee">
+    <span class="chip c-violet">Frontend</span>
+    <span class="chip c-cyan">Backend</span>
+    <span class="chip c-pink">AI/ML</span>
+    <span class="chip c-lime">Data Science</span>
+    <span class="chip c-amber">UI/UX Design</span>
+    <span class="chip c-violet">Mobile Dev</span>
+    <span class="chip c-cyan">Hardware/IoT</span>
+    <span class="chip c-pink">Blockchain</span>
+    <span class="chip c-lime">DevOps</span>
+    <span class="chip c-amber">Cloud/AWS</span>
+    <span class="chip c-violet">Video/Content</span>
+    <span class="chip c-cyan">Pitching</span>
+    <span class="chip c-pink">Research</span>
+    <span class="chip c-lime">Project Mgmt</span>
+    <span class="chip c-amber">Full Stack</span>
+    <span class="chip c-violet">Frontend</span>
+    <span class="chip c-cyan">Backend</span>
+    <span class="chip c-pink">AI/ML</span>
+    <span class="chip c-lime">Data Science</span>
+    <span class="chip c-amber">UI/UX Design</span>
+    <span class="chip c-violet">Mobile Dev</span>
+    <span class="chip c-cyan">Hardware/IoT</span>
+    <span class="chip c-pink">Blockchain</span>
+    <span class="chip c-lime">DevOps</span>
+    <span class="chip c-amber">Cloud/AWS</span>
+    <span class="chip c-violet">Video/Content</span>
+    <span class="chip c-cyan">Pitching</span>
+    <span class="chip c-pink">Research</span>
+    <span class="chip c-lime">Project Mgmt</span>
+    <span class="chip c-amber">Full Stack</span>
+  </div>
+</div>
+
+<section id="modes" class="wrap">
+  <div class="sec-head">
+    <div class="kicker">No more guesswork</div>
+    <h2>Two ways to squad up. <span class="grad-text">One rule: never build alone.</span></h2>
+    <p>Start a team from zero by swiping on solo builders — or plug a missing skill into a team that’s already moving.</p>
+  </div>
+
+  <div class="modes">
+    <div class="mode-card vio">
+      <div class="mode-num">1</div>
+      <h3>Discover · Swipe Mode</h3>
+      <div class="tagline">Solo ↔ Solo</div>
+      <ul>
+        <li><span class="tick">✓</span> Swipe through solo builders — skills, role &amp; GitHub, no fluff.</li>
+        <li><span class="tick">✓</span> Right = interested. Both swipe right → <b style="color:var(--pink-soft)">Mutual Match</b> 🎉</li>
+        <li><span class="tick">✓</span> Match opens a private chat. From there: <b style="color:var(--text)">“Form a Team”</b> unlocks the full workspace.</li>
+      </ul>
+      <a class="mode-link" href="#">Open Discover deck →</a>
+    </div>
+
+    <div class="mode-card cya">
+      <div class="mode-num">2</div>
+      <h3>Browse Teams · Request Mode</h3>
+      <div class="tagline">Solo → Existing team</div>
+      <ul>
+        <li><span class="tick">✓</span> Teams with <b style="color:var(--lime)">open</b> status appear in a filterable directory.</li>
+        <li><span class="tick">✓</span> Read the idea, members &amp; open roles before you commit.</li>
+        <li><span class="tick">✓</span> Pick a role, send a request → leader accepts &amp; you’re in, instantly.</li>
+      </ul>
+      <a class="mode-link" href="#">Browse open teams →</a>
+    </div>
+  </div>
+</section>
+
+<section id="workspace" class="wrap">
+  <div class="sec-head">
+    <div class="kicker">Team Workspace</div>
+    <h2>Matchmaking is step one.<br><span class="grad-text">The board is where it ships.</span></h2>
+    <p>Idea → PPT → Prototype → Test → Pitch. A live kanban, a countdown that doesn’t lie, and every resource in one place.</p>
+  </div>
+
+  <div class="kanban-wrap">
+    <div class="kanban-top">
+      <div>
+        <h3>MediVision · Team Workspace</h3>
+        <div class="team-name"><b>4 members</b> · Idea Finalization → Final Pitch · live-synced</div>
+      </div>
+      <span class="live-badge"><span class="dot"></span> Live</span>
+    </div>
+
+    <div class="kanban">
+      <div class="col">
+        <div class="col-head">Idea <span class="n">2</span></div>
+        <div class="bar" style="background:linear-gradient(90deg,#22d3ee,#67e8f9)"></div>
+        <div class="kcard">
+          <span class="tag t-idea">💡 Ideation</span>
+          <div class="t">Interview 5 clinicians on pain points</div>
+          <div class="meta"><span class="who"><span class="ava-sm" style="background:#67e8f9">RK</span> Riya</span><span>2d</span></div>
+        </div>
+        <div class="kcard">
+          <span class="tag t-idea">📊 Research</span>
+          <div class="t">Competitor scan: 6 rural-health apps</div>
+          <div class="meta"><span class="who"><span class="ava-sm" style="background:#f472b6">SM</span> Sam</span><span>1d</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-head">PPT Draft <span class="n">1</span></div>
+        <div class="bar" style="background:linear-gradient(90deg,#8b5cf6,#a78bfa)"></div>
+        <div class="kcard">
+          <span class="tag t-ppt">🎨 Deck</span>
+          <div class="t">Slide deck skeleton + story arc</div>
+          <div class="meta"><span class="who"><span class="ava-sm" style="background:#a3e635">JT</span> Jen</span><span>today</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-head">Prototype <span class="n">3</span></div>
+        <div class="bar" style="background:linear-gradient(90deg,#ec4899,#f472b6)"></div>
+        <div class="kcard">
+          <span class="tag t-proto">⚛ Frontend</span>
+          <div class="t">Symptom-checker flow in Figma</div>
+          <div class="meta"><span class="who"><span class="ava-sm" style="background:#a78bfa">AR</span> Aarav</span><span>5h</span></div>
+        </div>
+        <div class="kcard">
+          <span class="tag t-proto">🤖 API</span>
+          <div class="t">LLM triage endpoint v0.3</div>
+          <div class="meta"><span class="who"><span class="ava-sm" style="background:#f472b6">SM</span> Sam</span><span>2h</span></div>
+        </div>
+        <div class="kcard">
+          <span class="tag t-proto">📱 Mobile</span>
+          <div class="t">Kiosk PWA shell</div>
+          <div class="meta"><span class="who"><span class="ava-sm" style="background:#67e8f9">RK</span> Riya</span><span>1h</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-head">Testing <span class="n">1</span></div>
+        <div class="bar" style="background:linear-gradient(90deg,#fbbf24,#fcd34d)"></div>
+        <div class="kcard">
+          <span class="tag t-test">🧪 QA</span>
+          <div class="t">Usability test with 3 non-devs</div>
+          <div class="meta"><span class="who"><span class="ava-sm" style="background:#a3e635">JT</span> Jen</span><span>tomorrow</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-head">Final Pitch <span class="n">0</span></div>
+        <div class="bar" style="background:linear-gradient(90deg,#a3e635,#bef264)"></div>
+        <div class="kcard" style="border-style:dashed;color:var(--dim);text-align:center">
+          <div style="font-size:20px">🏆</div>
+          <div class="t" style="color:var(--dim)">Waiting for a winner card…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kanban-foot">
+      <span>⏱ 47h 18m to submission · <b style="color:var(--text)">62%</b> tasks done</span>
+      <span style="display:flex;align-items:center;gap:10px">GitHub activity · last 7 days
+        <span class="commit-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      </span>
+    </div>
+  </div>
+</section>
+
+<section id="resources" class="wrap">
+  <div class="sec-head">
+    <div class="kicker">Resource Hub</div>
+    <h2>Paste any link. <span class="grad-text">We make it look right.</span></h2>
+    <p>No more “my Figma link looks broken” — the hub detects the domain, shows the right badge, and live-previews anything embeddable.</p>
+  </div>
+
+  <div class="hub-grid">
+    <div class="hub-panel">
+      <h3>Universal link detection</h3>
+      <p class="desc">Drop any URL → auto-detected domain, favicon + title, and a live iframe preview when the platform allows it.</p>
+      <div class="link-input"><span class="glow"></span><span>https://figma.com/file/</span><u>9Xq2…</u></div>
+      <div class="domain-row">
+        <div class="domain-card">
+          <div class="domain-logo lg-figma">F</div>
+          <div>
+            <div class="d-name">Figma — Landing flow</div>
+            <div class="d-url">figma.com/file/9Xq2…</div>
+          </div>
+          <span class="d-state live">● Live preview</span>
+        </div>
+        <div class="domain-card">
+          <div class="domain-logo lg-github">⌥</div>
+          <div>
+            <div class="d-name">GitHub — medi-vision repo</div>
+            <div class="d-url">github.com/medivision/app</div>
+          </div>
+          <span class="d-state card">Open ↗</span>
+        </div>
+        <div class="domain-card">
+          <div class="domain-logo lg-canva">C</div>
+          <div>
+            <div class="d-name">Canva — Pitch deck</div>
+            <div class="d-url">canva.com/design/DAG…</div>
+          </div>
+          <span class="d-state card">Open ↗</span>
+        </div>
+        <div class="domain-card">
+          <div class="domain-logo lg-drive">▷</div>
+          <div>
+            <div class="d-name">Drive — Survey results</div>
+            <div class="d-url">drive.google.com/…</div>
+          </div>
+          <span class="d-state card">Open ↗</span>
+        </div>
+        <div class="domain-card">
+          <div class="domain-logo lg-excali">✎</div>
+          <div>
+            <div class="d-name">Excalidraw — System sketch</div>
+            <div class="d-url">excalidraw.com/#json=…</div>
+          </div>
+          <span class="d-state live">● Live preview</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hub-panel">
+      <h3>Mentor Corner</h3>
+      <p class="desc">Stuck? Open a ticket. Mentors see your board + resources before they answer — no context dump required.</p>
+      <div class="ticket">
+        <div class="head">
+          <h4>AWS deploy keeps failing at CORS</h4>
+          <span class="t-status progress">In progress</span>
+        </div>
+        <p>“API works locally, dies on Amplify. Team of 4, deadline in 30h — help!”</p>
+        <span class="ctx">👀 Seen kanban · 3 tasks in Testing</span>
+      </div>
+      <div class="ticket">
+        <div class="head">
+          <h4>Need a 2-min demo script</h4>
+          <span class="t-status open">Open</span>
+        </div>
+        <p>“We have the prototype, we don’t have a story. Anyone free for 20 min?”</p>
+      </div>
+      <div class="typing"><i></i><i></i><i></i></div>
+      <div style="font-size:12.5px;color:var(--dim);margin-top:14px">Ticket flow: Open → In Progress → Resolved · mentors reply in-thread</div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="big">312</div><div class="lbl">solo devs swiping now</div></div>
+    <div class="stat"><div class="big">94</div><div class="lbl">open teams recruiting</div></div>
+    <div class="stat"><div class="big">68%</div><div class="lbl">of users find a team in 7 days</div></div>
+    <div class="stat"><div class="big">48h</div><div class="lbl">until HackFest kickoff</div></div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap foot-inner">
+    <a class="logo" href="#"><span class="logo-mark">⚡</span> Squad<em>Up</em></a>
+    <div class="foot-links">
+      <a href="#modes">Discover</a>
+      <a href="#workspace">Workspace</a>
+      <a href="#resources">Resources</a>
+      <a href="#">Mentor</a>
+      <a href="#">Admin</a>
+    </div>
+    <span>Concept page · built for [Your College] · HackFest 2026</span>
+  </div>
+</footer>
+</body>
+</html>

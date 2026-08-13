@@ -1,0 +1,41 @@
+name: SquadUp Task
+description: A single unit of work mapped to PROPOSAL.md
+title: "[<type>] <short description>"
+labels: ["status:researching"]
+body:
+  - type: input
+    id: spec
+    attributes:
+      label: Spec Reference
+      placeholder: "PROPOSAL.md §4A — Matchmaking Engine"
+    validations:
+      required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Branch Name
+      placeholder: "feat/discover-swipe-deck"
+    validations:
+      required: true
+  - type: textarea
+    id: research
+    attributes:
+      label: Research Note
+      description: Filled by agent BEFORE coding
+      placeholder: "## 🔍 Research Note — see AGENTS.md Gate 1 template"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      value: |
+        - [ ] 
+        - [ ] 
+    validations:
+      required: true
+  - type: input
+    id: depends
+    attributes:
+      label: Depends On
+      placeholder: "#3, #5 (must be merged first)"
