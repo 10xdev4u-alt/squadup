@@ -17,6 +17,20 @@ export function isCollegeEmail(email) {
 }
 
 /**
+ * True when this email may receive an OTP: college-domain (reuses
+ * isCollegeEmail) OR an exact match in the admin allowlist (case-insensitive).
+ * The allowlist is the demo-day escape hatch — never a substring match.
+ */
+export function isOtpEmailAllowed(email, allowlist = []) {
+  if (!Array.isArray(allowlist) || typeof email !== "string") return false;
+  if (isCollegeEmail(email)) return true;
+  const normalized = email.toLowerCase();
+  return allowlist.some(
+    (entry) => typeof entry === "string" && entry.toLowerCase() === normalized
+  );
+}
+
+/**
  * True when this exact (fromUser, toUser) swipe already exists.
  * The reverse direction is NOT a duplicate — that is a mutual match in waiting.
  */
