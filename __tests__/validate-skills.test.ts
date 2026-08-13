@@ -53,6 +53,13 @@ describe("validateSkills", () => {
     expect(res.errors.skills).toBeTruthy();
   });
 
+  it("rejects duplicate skills", () => {
+    const res = validateSkills(
+      makeValues({ skills: ["Frontend", "Frontend"] })
+    );
+    expect(res.errors.skills).toBeTruthy();
+  });
+
   it("requires a primary role", () => {
     const res = validateSkills(makeValues({ primaryRole: null as never }));
     expect(res.errors.primaryRole).toBeTruthy();
