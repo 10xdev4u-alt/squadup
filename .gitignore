@@ -13,7 +13,7 @@ build/
 
 # PocketBase data (never commit; rule 9 in AGENTS.md)
 pb_data/
-pb_migrations/
+# NOTE: pb_migrations/ is CODE (schema as versioned migrations) and IS committed.
 
 # Logs
 *.log
@@ -37,6 +37,15 @@ coverage/
 # Local agent context — NEVER committed or pushed (private working docs)
 PROPOSAL.md
 AGENTS.md
+DEVPLAN.md
+
+# Local AI tooling + design artifacts — never pushed
+.specify/
+.claude/
+art/
+
+# Git worktrees
+.worktrees/
 
 # Husky internals
 .husky/_
