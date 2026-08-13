@@ -28,6 +28,21 @@ describe("isCollegeEmail", () => {
     expect(isCollegeEmail(null)).toBe(false);
     expect(isCollegeEmail(undefined)).toBe(false);
   });
+
+  it("accepts a custom domain passed explicitly (env-driven deploy)", () => {
+    expect(isCollegeEmail("jane@mycollege.edu.in", ["mycollege.edu.in"])).toBe(
+      true
+    );
+    expect(
+      isCollegeEmail("jane@eng.mycollege.edu.in", ["mycollege.edu.in"])
+    ).toBe(true);
+  });
+
+  it("rejects a non-matching domain against an explicit list", () => {
+    expect(isCollegeEmail("jane@college.edu", ["mycollege.edu.in"])).toBe(
+      false
+    );
+  });
 });
 
 describe("isDuplicateSwipe", () => {

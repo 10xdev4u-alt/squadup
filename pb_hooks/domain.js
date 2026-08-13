@@ -1,19 +1,21 @@
 // Pure domain rules for SquadUp's PocketBase hooks.
 // Deliberately free of $app/DB references so every rule is unit-testable.
 
-// College email domains allowed to register (§5, §8). Configure per college.
-const COLLEGE_DOMAINS = ["college.edu"];
+// College email domains allowed to register (§5, §8). The hook (main.pb.js)
+// overrides this via the ALLOWED_SIGNUP_DOMAIN env var; this is the fallback.
+export const DEFAULT_COLLEGE_DOMAINS = ["college.edu"];
 
 /**
- * True when the email belongs to the college domain (or a subdomain of it).
- * Lookalike domains like "college.edu.evil.com" are rejected by design.
+ * True when the email belongs to one of the given college domains (or a
+ * subdomain of one). Lookalike domains like "college.edu.evil.com" are
+ * rejected by design.
  */
-export function isCollegeEmail(email) {
+export function isCollegeEmail(email, domains = DEFAULT_COLLEGE_DOMAINS) {
   if (typeof email !== "string") return false;
   const at = email.lastIndexOf("@");
   if (at <= 0 || at === email.length - 1) return false;
   const domain = email.slice(at + 1).toLowerCase();
-  return COLLEGE_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`));
+  return domains.some((d) => domain === d || domain.endsWith(`.${d}`));
 }
 
 /**
