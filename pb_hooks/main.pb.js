@@ -4,6 +4,7 @@
 
 const {
   isCollegeEmail,
+  isOtpEmailAllowed,
   isDuplicateSwipe,
   shouldCreateMatch,
   orderMatchPair,
@@ -12,6 +13,8 @@ const {
 const COLLEGE_EMAIL_MSG = "Only college email addresses can register.";
 const DUPLICATE_SWIPE_MSG = "You have already swiped on this profile.";
 const SINGLE_TEAM_MSG = "You are already in a team.";
+const OTP_GATE_MSG =
+  "Only college email addresses (or allowlisted accounts) can request a login code.";
 
 // users: only college-domain emails may register (§5 Flow 1, §8 API rules)
 onRecordBeforeCreateRequest((e) => {
@@ -19,6 +22,22 @@ onRecordBeforeCreateRequest((e) => {
   if (!isCollegeEmail(email)) {
     throw new Error(COLLEGE_EMAIL_MSG);
   }
+}, "users");
+
+// users: gate OTP emails at SEND time — the register hook only guards record
+// creation, but request-otp fires for any address. The admin allowlist is the
+// demo-day escape hatch (SQUADUP_OTP_ALLOWLIST, comma-separated exact emails).
+const OTP_ALLOWLIST = ($os.getenv("SQUADUP_OTP_ALLOWLIST") || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+onMailerRecordOTPSend((e) => {
+  const email = e.record.get("email");
+  if (!isOtpEmailAllowed(email, OTP_ALLOWLIST)) {
+    throw new Error(OTP_GATE_MSG);
+  }
+  e.next();
 }, "users");
 
 // swipes: reject duplicates, and complete a mutual right-swipe by creating

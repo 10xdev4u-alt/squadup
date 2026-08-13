@@ -1,19 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTicketsApi } from "@/lib/api/tickets";
-import type { PbClient, PbRecordService } from "@/lib/api/types";
-
-function makeService(overrides: Partial<PbRecordService> = {}): PbRecordService {
-  return {
-    getOne: vi.fn(async () => ({})),
-    getList: vi.fn(async () => ({ page: 1, perPage: 20, totalItems: 0, totalPages: 0, items: [] })),
-    create: vi.fn(async () => ({})),
-    ...overrides,
-  };
-}
-
-function makeClient(service: PbRecordService): PbClient {
-  return { collection: vi.fn(() => service) };
-}
+import { makeClient, makeService } from "@/__tests__/helpers/client";
 
 const ticketRecord = {
   id: "tk1",
@@ -29,7 +16,10 @@ describe("tickets api", () => {
     const service = makeService({ create: vi.fn(async () => ticketRecord) });
     const api = createTicketsApi(makeClient(service));
 
-    const ticket = await api.createTicket({ team: "t1", title: "Need help with PocketBase rules" });
+    const ticket = await api.createTicket({
+      team: "t1",
+      title: "Need help with PocketBase rules",
+    });
 
     // §8: status/assignedMentor are server-owned.
     expect(service.create).toHaveBeenCalledWith({
@@ -59,6 +49,9 @@ describe("tickets api", () => {
       expect.objectContaining({ filter: expect.stringContaining("team") })
     );
     expect(result.items).toHaveLength(1);
-    expect(result.items[0]).toMatchObject({ id: "tk1", title: "Need help with PocketBase rules" });
+    expect(result.items[0]).toMatchObject({
+      id: "tk1",
+      title: "Need help with PocketBase rules",
+    });
   });
 });

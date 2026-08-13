@@ -1,19 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createSwipesApi } from "@/lib/api/swipes";
-import type { PbClient, PbRecordService } from "@/lib/api/types";
-
-function makeService(overrides: Partial<PbRecordService> = {}): PbRecordService {
-  return {
-    getOne: vi.fn(async () => ({})),
-    getList: vi.fn(async () => ({ page: 1, perPage: 20, totalItems: 0, totalPages: 0, items: [] })),
-    create: vi.fn(async () => ({})),
-    ...overrides,
-  };
-}
-
-function makeClient(service: PbRecordService): PbClient {
-  return { collection: vi.fn(() => service) };
-}
+import { makeClient, makeService } from "@/__tests__/helpers/client";
 
 describe("swipes api", () => {
   it("records a swipe sending only toUser and direction", async () => {
@@ -28,7 +15,10 @@ describe("swipes api", () => {
     });
     const api = createSwipesApi(makeClient(service));
 
-    const swipe = await api.recordSwipe({ toUser: "u-them", direction: "right" });
+    const swipe = await api.recordSwipe({
+      toUser: "u-them",
+      direction: "right",
+    });
 
     // §8 rule: fromUser is derived server-side from the auth token — the
     // client must never send it.

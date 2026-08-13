@@ -1,20 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { ClientResponseError } from "pocketbase";
 import { createTeamsApi } from "@/lib/api/teams";
-import type { PbClient, PbRecordService } from "@/lib/api/types";
-
-function makeService(overrides: Partial<PbRecordService> = {}): PbRecordService {
-  return {
-    getOne: vi.fn(async () => ({})),
-    getList: vi.fn(async () => ({ page: 1, perPage: 20, totalItems: 0, totalPages: 0, items: [] })),
-    create: vi.fn(async () => ({})),
-    ...overrides,
-  };
-}
-
-function makeClient(service: PbRecordService): PbClient {
-  return { collection: vi.fn(() => service) };
-}
+import { makeClient, makeService } from "@/__tests__/helpers/client";
 
 const teamRecord = {
   id: "t1",

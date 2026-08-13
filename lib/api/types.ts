@@ -20,8 +20,27 @@ export interface PbRecordService {
     body: Record<string, unknown>,
     options?: Record<string, unknown>
   ): Promise<Record<string, unknown>>;
+  /** §7 email-OTP: request a one-time code (send-time gate lives in pb_hooks). */
+  requestOTP(
+    email: string,
+    options?: Record<string, unknown>
+  ): Promise<{ otpId?: string }>;
+  /** §7 email-OTP: exchange otpId + code for a session. */
+  authWithOTP(
+    otpId: string,
+    password: string,
+    options?: Record<string, unknown>
+  ): Promise<{ token: string; record: Record<string, unknown> }>;
+}
+
+/** Minimal auth session surface — matches the SDK's BaseAuthStore shape. */
+export interface PbAuthStore {
+  token: string;
+  record: Record<string, unknown> | null;
+  isValid: boolean;
 }
 
 export interface PbClient {
   collection(name: string): PbRecordService;
+  authStore: PbAuthStore;
 }
