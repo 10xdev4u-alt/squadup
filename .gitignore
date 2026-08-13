@@ -13,7 +13,7 @@ build/
 
 # PocketBase data (never commit; rule 9 in AGENTS.md)
 pb_data/
-pb_migrations/
+# NOTE: pb_migrations/ is CODE (schema as versioned migrations) and IS committed.
 
 # Logs
 *.log
