@@ -13,8 +13,7 @@ once the team exists (kanban, resources, mentor tickets).
 | `.github/ISSUE_TEMPLATE/task.yml`  | One issue = one task. Branch name + research note live here.                                                                                                                    |
 | `.github/pull_request_template.md` | PR body contract.                                                                                                                                                               |
 | `.github/workflows/ci.yml`         | Build + lint on every PR (activates once the app scaffold lands).                                                                                                               |
-| `.githooks/commit-msg`             | Strips AI trailers + enforces Conventional Commits with ≤6-word subjects. **The gate that can't be clicked past.**                                                              |
-| `.husky/`                          | Pre-commit hook: lint-staged (Prettier) on staged files. Delegates commit-msg to `.githooks/commit-msg`.                                                                        |
+| `.githooks/commit-msg`             | Strips AI trailers + enforces Conventional Commits with ≤6-word subjects. **The gate that can't be clicked past.**                                                              |     | `.husky/` | Pre-commit hook: lint-staged (Prettier) + `npm run test` (vitest, TDD-enforced). Delegates commit-msg to `.githooks/commit-msg`. |
 | `landing.html`                     | Professional landing page on the exact §6 tokens (published on postplan).                                                                                                       |
 | `squadup.html`                     | Earlier creative concept page (dark neon exploration).                                                                                                                          |
 
@@ -22,7 +21,7 @@ once the team exists (kanban, resources, mentor tickets).
 
 1. Open a task issue (template above). The agent researches, writes a **Research Note**,
    and stops at **Gate 1** — no branch until you reply `APPROVED`.
-2. Agent branches, codes in small Conventional Commits (no AI trailers, ≤6-word subjects), pushes, opens a
+2. Agent branches, codes TDD-first (failing test → minimal code) in small Conventional Commits (no AI trailers, ≤6-word subjects), pushes, opens a
    PR, and stops at **Gate 2**.
 3. **You** review the diff line by line, approve, and merge with a merge commit
    (`--no-ff`). The agent never merges. Ever.
