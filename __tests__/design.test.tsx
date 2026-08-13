@@ -14,4 +14,17 @@ describe("design tokens page", () => {
     expect(screen.getByText("Inter")).toBeInTheDocument();
     expect(screen.getByText("JetBrains Mono")).toBeInTheDocument();
   });
+
+  it("showcases all five ui primitives", () => {
+    render(<Design />);
+    expect(
+      screen.getByRole("button", { name: /primary action/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Success badge")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Team name")).toBeInTheDocument();
+    expect(screen.getByText("Card title")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /open dialog/i })
+    ).toBeInTheDocument();
+  });
 });
