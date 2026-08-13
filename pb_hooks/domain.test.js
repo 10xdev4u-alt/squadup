@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isCollegeEmail } from "./domain";
+import { isCollegeEmail, isDuplicateSwipe } from "./domain";
 
 describe("isCollegeEmail", () => {
   it("accepts a valid college address", () => {
@@ -21,5 +21,21 @@ describe("isCollegeEmail", () => {
     expect(isCollegeEmail("not-an-email")).toBe(false);
     expect(isCollegeEmail(null)).toBe(false);
     expect(isCollegeEmail(undefined)).toBe(false);
+  });
+});
+
+describe("isDuplicateSwipe", () => {
+  it("flags a swipe already made in the same direction", () => {
+    const swipes = [{ fromUser: "a", toUser: "b" }];
+    expect(isDuplicateSwipe(swipes, "a", "b")).toBe(true);
+  });
+
+  it("allows the reverse direction", () => {
+    const swipes = [{ fromUser: "a", toUser: "b" }];
+    expect(isDuplicateSwipe(swipes, "b", "a")).toBe(false);
+  });
+
+  it("allows a fresh pair", () => {
+    expect(isDuplicateSwipe([], "a", "b")).toBe(false);
   });
 });

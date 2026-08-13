@@ -15,3 +15,11 @@ export function isCollegeEmail(email) {
   const domain = email.slice(at + 1).toLowerCase();
   return COLLEGE_DOMAINS.some((d) => domain === d || domain.endsWith(`.${d}`));
 }
+
+/**
+ * True when this exact (fromUser, toUser) swipe already exists.
+ * The reverse direction is NOT a duplicate — that is a mutual match in waiting.
+ */
+export function isDuplicateSwipe(swipes, fromUser, toUser) {
+  return swipes.some((s) => s.fromUser === fromUser && s.toUser === toUser);
+}
