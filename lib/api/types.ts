@@ -20,6 +20,11 @@ export interface PbRecordService {
     body: Record<string, unknown>,
     options?: Record<string, unknown>
   ): Promise<Record<string, unknown>>;
+  update(
+    id: string,
+    body: Record<string, unknown>,
+    options?: Record<string, unknown>
+  ): Promise<Record<string, unknown>>;
   /** §7 email-OTP: request a one-time code (send-time gate lives in pb_hooks). */
   requestOTP(
     email: string,

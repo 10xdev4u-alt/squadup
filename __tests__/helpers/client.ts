@@ -19,6 +19,7 @@ export function makeService(
       items: [],
     })),
     create: vi.fn(async () => ({})),
+    update: vi.fn(async () => ({})),
     requestOTP: vi.fn(async () => ({ otpId: "otp-stub" })),
     authWithOTP: vi.fn(async () => ({ token: "", record: {} })),
     ...overrides,
