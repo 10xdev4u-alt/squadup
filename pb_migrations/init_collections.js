@@ -302,9 +302,9 @@ migrate(
       type: "base",
       name: "tasks",
       listRule:
-        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+        "team.members ~ @request.auth.id || @request.auth.mentor = true || @request.auth.admin = true",
       viewRule:
-        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+        "team.members ~ @request.auth.id || @request.auth.mentor = true || @request.auth.admin = true",
       createRule: "team.members ~ @request.auth.id",
       updateRule: "team.members ~ @request.auth.id",
       fields: [
@@ -349,9 +349,9 @@ migrate(
       type: "base",
       name: "resources",
       listRule:
-        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+        "team.members ~ @request.auth.id || @request.auth.mentor = true || @request.auth.admin = true",
       viewRule:
-        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+        "team.members ~ @request.auth.id || @request.auth.mentor = true || @request.auth.admin = true",
       createRule: "team.members ~ @request.auth.id",
       fields: [
         {
@@ -390,9 +390,9 @@ migrate(
       type: "base",
       name: "mentor_tickets",
       listRule:
-        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+        "team.members ~ @request.auth.id || @request.auth.mentor = true || @request.auth.admin = true",
       viewRule:
-        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+        "team.members ~ @request.auth.id || @request.auth.mentor = true || @request.auth.admin = true",
       createRule:
         "team.members ~ @request.auth.id || @request.auth.mentor = true",
       // §4D: status transitions (assign/resolve) are mentor-only — 403 others.

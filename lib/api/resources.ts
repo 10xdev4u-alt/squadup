@@ -53,6 +53,19 @@ export function createResourcesApi(client: PbClient) {
     }
   }
 
+  /**
+   * Admin-scoped: every resource across every team (§4E analytics). Gated by
+   * the relaxed list rule — create stays member-scoped.
+   */
+  async function fetchAllResources(): Promise<Resource[]> {
+    try {
+      const list = await resources().getList(1, 200, { sort: "-created" });
+      return list.items.map((r) => toResource(r as Record<string, unknown>));
+    } catch (err) {
+      throw normalizeError(err);
+    }
+  }
+
   async function createResource(
     teamId: string,
     input: NewResource
@@ -69,5 +82,5 @@ export function createResourcesApi(client: PbClient) {
     }
   }
 
-  return { fetchResources, createResource };
+  return { fetchResources, fetchAllResources, createResource };
 }

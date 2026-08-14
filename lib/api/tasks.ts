@@ -45,6 +45,19 @@ export function createTasksApi(client: PbClient) {
     }
   }
 
+  /**
+   * Admin-scoped: every task across every team (§4E analytics). Gated by the
+   * relaxed list rule — create/update stay member-scoped.
+   */
+  async function fetchAllTasks(): Promise<Task[]> {
+    try {
+      const list = await tasks().getList(1, 200, { sort: "created" });
+      return list.items.map((r) => toTask(r as Record<string, unknown>));
+    } catch (err) {
+      throw normalizeError(err);
+    }
+  }
+
   async function createTask(teamId: string, input: NewTask): Promise<Task> {
     try {
       const record = await tasks().create({
@@ -94,5 +107,11 @@ export function createTasksApi(client: PbClient) {
     );
   }
 
-  return { fetchTasks, createTask, updateTaskStatus, subscribeTasks };
+  return {
+    fetchTasks,
+    fetchAllTasks,
+    createTask,
+    updateTaskStatus,
+    subscribeTasks,
+  };
 }
