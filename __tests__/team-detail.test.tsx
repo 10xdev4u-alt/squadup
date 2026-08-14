@@ -61,6 +61,7 @@ function makeRequest(overrides: Partial<JoinRequest> = {}): JoinRequest {
     id: "jr1",
     team: "t1",
     applicant: "u-other",
+    applicantName: "Meera Nair",
     roleAppliedFor: "Developer",
     message: "I build things.",
     status: "pending",

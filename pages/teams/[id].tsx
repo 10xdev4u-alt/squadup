@@ -231,7 +231,10 @@ export default function TeamDetailPage() {
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium">
-                          {request.roleAppliedFor}
+                          {request.applicantName ?? "Unknown applicant"}
+                          <span className="block text-xs font-normal text-muted-foreground">
+                            applying as {request.roleAppliedFor}
+                          </span>
                           {request.message ? (
                             <span className="block text-xs font-normal text-muted-foreground">
                               {request.message}

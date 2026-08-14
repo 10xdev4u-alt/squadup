@@ -138,6 +138,7 @@ export interface JoinRequest {
   id: string;
   team: string;
   applicant: string;
+  applicantName: string | null;
   roleAppliedFor: PrimaryRole;
   message: string;
   status: JoinRequestStatus;
@@ -201,7 +202,10 @@ export interface ProblemStatement {
 // ---------- DTOs: what the client may actually send (§8 API rules) ----------
 
 /** Join request payload — status/createdAt are server-owned. */
-export type NewJoinRequest = Omit<JoinRequest, "id" | "status" | "createdAt">;
+export type NewJoinRequest = Omit<
+  JoinRequest,
+  "id" | "status" | "createdAt" | "applicantName"
+>;
 
 /** Profile editing — id/collegeId/status are server-owned. */
 export type EditableProfile = Omit<User, "id" | "collegeId" | "status">;
