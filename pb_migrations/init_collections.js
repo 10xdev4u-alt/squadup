@@ -5,6 +5,18 @@
 
 migrate(
   (app) => {
+    // PB 0.25+ auto-creates a built-in `users` auth collection (`_pb_users_auth_`)
+    // on first boot. Our §8 schema redefines it fully, so drop the placeholder
+    // before creating ours — otherwise the name collides.
+    try {
+      const builtin = app.findCollectionByNameOrId("users");
+      if (builtin && builtin.id === "_pb_users_auth_") {
+        app.delete(builtin);
+      }
+    } catch {
+      // not present — fine
+    }
+
     // --- referenced collections first (ids are resolved for relation fields) ---
 
     const users = new Collection({
@@ -14,7 +26,7 @@ migrate(
       viewRule: "@request.auth.id != null",
       fields: [
         { type: "text", name: "name", required: true, max: 100 },
-        { type: "text", name: "collegeId", required: true, max: 50 },
+        { type: "text", name: "collegeId", max: 50 },
         {
           type: "file",
           name: "avatar",
@@ -37,7 +49,6 @@ migrate(
             "Hardware",
           ],
           maxSelect: 1,
-          required: true,
         },
         {
           type: "select",
@@ -54,7 +65,9 @@ migrate(
       ],
       passwordAuth: { enabled: true },
       otp: { enabled: true },
-      indexes: ["CREATE UNIQUE INDEX idx_users_collegeId ON users (collegeId)"],
+      indexes: [
+        "CREATE UNIQUE INDEX idx_users_collegeId ON users (collegeId) WHERE collegeId != ''",
+      ],
     });
     app.save(users);
     const usersId = users.id;
