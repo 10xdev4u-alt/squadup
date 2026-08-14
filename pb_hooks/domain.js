@@ -75,6 +75,20 @@ export function orderMatchPair(a, b) {
   return a < b ? [a, b] : [b, a];
 }
 
+const INVITE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
+
+/**
+ * Generates an 8-character team invite code (unique index on teams.inviteCode).
+ * Unambiguous uppercase alphanumerics so codes are easy to read aloud.
+ */
+export function generateInviteCode() {
+  let code = "";
+  for (let i = 0; i < 8; i++) {
+    code += INVITE_ALPHABET[Math.floor(Math.random() * INVITE_ALPHABET.length)];
+  }
+  return code;
+}
+
 /**
  * True when the user is one of the two participants of the match.
  * Backs the chat security rule (§2): only the two matched users may read

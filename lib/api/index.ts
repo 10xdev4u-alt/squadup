@@ -29,7 +29,7 @@ export function api() {
 export type { ApiError, ApiErrorKind } from "@/lib/api/error";
 export { getApiErrorMessage } from "@/lib/api/error";
 export type { Paginated } from "@/lib/api/pagination";
-export type { NewTeam } from "@/lib/api/teams";
+export type { NewTeam, ProblemStatement } from "@/lib/api/teams";
 export type { RecordSwipeInput } from "@/lib/api/swipes";
 export type { CreateTicketInput } from "@/lib/api/tickets";
 export type { OtpSession, OtpRequest } from "@/lib/api/auth";

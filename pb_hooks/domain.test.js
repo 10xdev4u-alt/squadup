@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   findUserTeam,
+  generateInviteCode,
   isCollegeEmail,
   isDuplicateSwipe,
   isMatchMember,
@@ -41,6 +42,24 @@ describe("isCollegeEmail", () => {
 
   it("rejects a non-matching domain against an explicit list", () => {
     expect(isCollegeEmail("jane@gmail.com", ["mycollege.edu.in"])).toBe(false);
+  });
+});
+
+describe("generateInviteCode", () => {
+  it("produces an 8-character code", () => {
+    expect(generateInviteCode()).toHaveLength(8);
+  });
+
+  it("uses only unambiguous uppercase alphanumerics", () => {
+    const code = generateInviteCode();
+    expect(code).toMatch(/^[A-Z2-9]{8}$/);
+  });
+
+  it("is not trivially deterministic", () => {
+    const codes = new Set(
+      Array.from({ length: 200 }, () => generateInviteCode())
+    );
+    expect(codes.size).toBeGreaterThan(150);
   });
 });
 

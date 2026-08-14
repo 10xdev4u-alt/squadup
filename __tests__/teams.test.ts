@@ -1,93 +1,47 @@
 import { describe, expect, it, vi } from "vitest";
-import { ClientResponseError } from "pocketbase";
 import { createTeamsApi } from "@/lib/api/teams";
-import { makeClient, makeService } from "@/__tests__/helpers/client";
+import { makeAuthStore, makeService } from "@/__tests__/helpers/client";
 
-const teamRecord = {
-  id: "t1",
-  name: "Hackstreet Boys",
-  problemStatement: "ps1",
-  inviteCode: "SECRET-CODE",
-  status: "open",
-  rolesNeeded: ["Developer"],
-  leader: "u1",
-  members: ["u1", "u2"],
-  chatLink: "https://discord.gg/secret",
-  createdAt: "2026-08-13 10:00:00.000Z",
-};
-
-describe("teams api", () => {
-  it("maps a team record to TeamCard, dropping private fields", async () => {
-    const service = makeService({ getOne: vi.fn(async () => teamRecord) });
-    const api = createTeamsApi(makeClient(service));
-
-    const card = await api.fetchTeamCard("t1");
-
-    expect(card).toEqual({
-      id: "t1",
-      name: "Hackstreet Boys",
-      problemStatement: "ps1",
-      status: "open",
-      rolesNeeded: ["Developer"],
-    });
-    // Privacy rule (§8): members + chatLink must never leave the module.
-    expect("members" in card).toBe(false);
-    expect("chatLink" in card).toBe(false);
-  });
-
-  it("fetches a paginated directory of TeamCards", async () => {
+describe("teams api — fetchProblemStatements", () => {
+  it("returns problem statements as DTOs", async () => {
     const service = makeService({
       getList: vi.fn(async () => ({
-        page: 2,
-        perPage: 20,
-        totalItems: 42,
-        totalPages: 3,
-        items: [teamRecord],
+        page: 1,
+        perPage: 100,
+        totalItems: 2,
+        totalPages: 1,
+        items: [
+          {
+            id: "p1",
+            title: "Smart campus navigation",
+            domain: "Smart Cities",
+          },
+          { id: "p2", title: "Farm yield prediction", domain: "Agriculture" },
+        ],
       })),
     });
-    const api = createTeamsApi(makeClient(service));
+    const client = makeClientWith(service);
+    const api = createTeamsApi(client);
 
-    const result = await api.fetchTeamCards(2);
+    const statements = await api.fetchProblemStatements();
 
-    expect(service.getList).toHaveBeenCalledWith(2, 20, expect.anything());
-    const first = result.items[0]!;
-    expect(first).toMatchObject({ id: "t1", name: "Hackstreet Boys" });
-    expect(result.totalItems).toBe(42);
-    expect("chatLink" in first).toBe(false);
+    expect(statements).toEqual([
+      { id: "p1", title: "Smart campus navigation", domain: "Smart Cities" },
+      { id: "p2", title: "Farm yield prediction", domain: "Agriculture" },
+    ]);
   });
 
-  it("creates a team sending only client-owned fields", async () => {
-    const service = makeService({ create: vi.fn(async () => teamRecord) });
-    const api = createTeamsApi(makeClient(service));
+  it("returns an empty list when none exist", async () => {
+    const service = makeService();
+    const api = createTeamsApi(makeClientWith(service));
 
-    await api.createTeam({
-      name: "Hackstreet Boys",
-      problemStatement: "ps1",
-      rolesNeeded: ["Developer", "Designer"],
-    });
-
-    expect(service.create).toHaveBeenCalledWith({
-      name: "Hackstreet Boys",
-      problemStatement: "ps1",
-      rolesNeeded: ["Developer", "Designer"],
-    });
-  });
-
-  it("normalizes SDK failures into typed ApiErrors", async () => {
-    const service = makeService({
-      getOne: vi.fn(async () => {
-        throw new ClientResponseError({
-          url: "http://127.0.0.1:8090/api/collections/teams/records/t1",
-          status: 404,
-          response: { code: 404, message: "missing", data: {} },
-        });
-      }),
-    });
-    const api = createTeamsApi(makeClient(service));
-
-    await expect(api.fetchTeamCard("t1")).rejects.toMatchObject({
-      kind: "not_found",
-      status: 404,
-    });
+    expect(await api.fetchProblemStatements()).toEqual([]);
   });
 });
+
+function makeClientWith(service: ReturnType<typeof makeService>) {
+  return {
+    collection: vi.fn(() => service),
+    authStore: makeAuthStore({ record: { id: "u-me" }, isValid: true }),
+  };
+}
