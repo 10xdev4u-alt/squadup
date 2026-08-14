@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import Avatar from "@/components/avatar";
 import Layout from "@/components/Layout";
+import PageHeader from "@/components/page-header";
 import EmptyState from "@/components/empty-state";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api } from "@/lib/api";
@@ -33,7 +34,10 @@ export default function Matches() {
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold">Matches</h1>
+      <PageHeader
+        title="Matches"
+        description="Conversations with classmates you've matched with."
+      />
 
       <div className="mt-6">
         {loading ? (

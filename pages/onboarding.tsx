@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
+import PageHeader from "@/components/page-header";
 import { api, getApiErrorMessage, getCurrentUser } from "@/lib/api";
 import { getClient } from "@/lib/api/client";
 import { validateProfile, type ProfileErrors } from "@/lib/validate-profile";
@@ -42,7 +43,10 @@ export default function Onboarding() {
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold">Set up your profile</h1>
+      <PageHeader
+        title="Set up your profile"
+        description="Tell your future teammates who you are and what you build."
+      />
       <p className="mt-2 text-muted-foreground">
         Step 1 of 2 — tell your future squad who you are.
       </p>
