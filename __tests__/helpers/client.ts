@@ -22,6 +22,8 @@ export function makeService(
     update: vi.fn(async () => ({})),
     requestOTP: vi.fn(async () => ({ otpId: "otp-stub" })),
     authWithOTP: vi.fn(async () => ({ token: "", record: {} })),
+    subscribe: vi.fn(async () => vi.fn(async () => {})),
+    unsubscribe: vi.fn(async () => {}),
     ...overrides,
   };
 }
