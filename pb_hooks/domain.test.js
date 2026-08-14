@@ -259,3 +259,39 @@ describe("detectResourceType", () => {
     });
   });
 });
+
+// Mentorship (§4D — ticket roles).
+import { describe, it, expect } from "vitest";
+import { canManageTicket, canViewTicket, isMentor } from "./domain.js";
+
+describe("isMentor", () => {
+  it("is true when the user carries the mentor flag", () => {
+    expect(isMentor({ mentor: true })).toBe(true);
+  });
+
+  it("is false otherwise", () => {
+    expect(isMentor({ mentor: false })).toBe(false);
+    expect(isMentor({})).toBe(false);
+  });
+});
+
+describe("canViewTicket", () => {
+  it("allows a team member", () => {
+    expect(canViewTicket({ mentor: false }, ["u-a", "u-b"], "u-a")).toBe(true);
+  });
+
+  it("allows any mentor", () => {
+    expect(canViewTicket({ mentor: true }, ["u-a"], "u-mentor")).toBe(true);
+  });
+
+  it("rejects an outsider who is not a mentor", () => {
+    expect(canViewTicket({ mentor: false }, ["u-a"], "u-x")).toBe(false);
+  });
+});
+
+describe("canManageTicket", () => {
+  it("is mentor-only", () => {
+    expect(canManageTicket({ mentor: true })).toBe(true);
+    expect(canManageTicket({ mentor: false })).toBe(false);
+  });
+});

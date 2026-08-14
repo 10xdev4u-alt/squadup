@@ -131,4 +131,15 @@ describe("team dashboard — chat link + settings entry (I21)", () => {
       screen.queryByRole("link", { name: /open team chat/i })
     ).not.toBeInTheDocument();
   });
+
+  it("links to the Mentor Corner tickets page", async () => {
+    fetchTeamDetailMock.mockResolvedValue(makeDetail());
+
+    render(<TeamDashboardPage />);
+
+    const tickets = await screen.findByRole("link", {
+      name: /mentor corner/i,
+    });
+    expect(tickets).toHaveAttribute("href", "/team/t1/tickets");
+  });
 });

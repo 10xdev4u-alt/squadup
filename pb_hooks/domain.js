@@ -179,3 +179,21 @@ export function detectResourceType(url) {
     return { type: "other", embeddable: false };
   }
 }
+
+// Mentorship (§4D — ticket roles). `mentor` is a users bool flag (schema
+// gap closed in I24 — §8 had no way to say who a mentor is).
+export function isMentor(user) {
+  return Boolean(user && user.mentor === true);
+}
+
+/** Ticket visibility: the team's members, or any mentor (§4D context). */
+export function canViewTicket(user, teamMembers, userId) {
+  if (!userId) return false;
+  if (isMentor(user)) return true;
+  return (teamMembers || []).includes(userId);
+}
+
+/** Status transitions (assign/resolve) are mentor-only — others get 403. */
+export function canManageTicket(user) {
+  return isMentor(user);
+}

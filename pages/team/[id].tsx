@@ -129,6 +129,15 @@ export default function TeamDashboardPage() {
               Share links and embed designs for the team.
             </p>
           </Link>
+          <Link
+            href={`/team/${team.id}/tickets`}
+            className="rounded-card border border-border bg-card p-6 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          >
+            <h2 className="text-lg font-semibold">Mentor Corner</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Open a ticket and get help from a mentor.
+            </p>
+          </Link>
         </nav>
 
         {team.chatLink && (

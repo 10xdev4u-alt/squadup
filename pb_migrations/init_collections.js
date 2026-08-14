@@ -47,6 +47,8 @@ migrate(
           required: true,
         },
         { type: "text", name: "lookingFor", max: 200 },
+        // I24: §4D mentor identity — schema gap closed (was no mentor flag).
+        { type: "bool", name: "mentor" },
       ],
       passwordAuth: { enabled: true },
       otp: { enabled: true },
@@ -297,8 +299,10 @@ migrate(
     const tasks = new Collection({
       type: "base",
       name: "tasks",
-      listRule: "team.members ~ @request.auth.id",
-      viewRule: "team.members ~ @request.auth.id",
+      listRule:
+        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+      viewRule:
+        "team.members ~ @request.auth.id || @request.auth.mentor = true",
       createRule: "team.members ~ @request.auth.id",
       updateRule: "team.members ~ @request.auth.id",
       fields: [
@@ -342,8 +346,10 @@ migrate(
     const resources = new Collection({
       type: "base",
       name: "resources",
-      listRule: "team.members ~ @request.auth.id",
-      viewRule: "team.members ~ @request.auth.id",
+      listRule:
+        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+      viewRule:
+        "team.members ~ @request.auth.id || @request.auth.mentor = true",
       createRule: "team.members ~ @request.auth.id",
       fields: [
         {
@@ -381,10 +387,14 @@ migrate(
     const mentorTickets = new Collection({
       type: "base",
       name: "mentor_tickets",
-      listRule: "@request.auth.id != null",
-      viewRule: "@request.auth.id != null",
-      createRule: "@request.auth.id != null",
-      updateRule: "@request.auth.id != null",
+      listRule:
+        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+      viewRule:
+        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+      createRule:
+        "team.members ~ @request.auth.id || @request.auth.mentor = true",
+      // §4D: status transitions (assign/resolve) are mentor-only — 403 others.
+      updateRule: "@request.auth.mentor = true",
       fields: [
         {
           type: "relation",
@@ -416,9 +426,12 @@ migrate(
     const ticketMessages = new Collection({
       type: "base",
       name: "ticket_messages",
-      listRule: "@request.auth.id != null",
-      viewRule: "@request.auth.id != null",
-      createRule: "@request.auth.id != null",
+      listRule:
+        "ticket.team.members ~ @request.auth.id || @request.auth.mentor = true",
+      viewRule:
+        "ticket.team.members ~ @request.auth.id || @request.auth.mentor = true",
+      createRule:
+        "ticket.team.members ~ @request.auth.id || @request.auth.mentor = true",
       fields: [
         {
           type: "relation",
