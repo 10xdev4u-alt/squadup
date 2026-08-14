@@ -114,3 +114,25 @@ export function hasPendingRequest(requests, teamId, applicantId) {
 export function isSelfJoin(team, applicantId) {
   return Boolean(team && applicantId && team.leader === applicantId);
 }
+
+// Teams: the countdown target (§4B, §9). Server-owned like leader/status —
+// the create hook derives `deadline = createdAt + TEAM_DEADLINE_HOURS`.
+export const TEAM_DEADLINE_HOURS = 48;
+
+/** ISO string `hours` after the team's creation instant. */
+export function deadlineFor(createdAt) {
+  return new Date(
+    createdAt.getTime() + TEAM_DEADLINE_HOURS * 3600 * 1000
+  ).toISOString();
+}
+
+/** Whole hours remaining until the deadline (0 once passed). */
+export function hoursUntil(deadline, now) {
+  const ms = deadline.getTime() - now.getTime();
+  return ms <= 0 ? 0 : Math.ceil(ms / (3600 * 1000));
+}
+
+/** True when the deadline is closer than the §9 red-pulse threshold (24h). */
+export function isUrgent(remainingMs) {
+  return remainingMs > 0 && remainingMs < 24 * 3600 * 1000;
+}

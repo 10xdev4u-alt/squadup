@@ -74,6 +74,7 @@ describe("teams api — fetchTeamDetail", () => {
         inviteCode: "ABC12345",
         chatLink: "https://chat.example/secret",
         problemStatement: "p1",
+        deadline: "2026-08-16T12:00:00.000Z",
         leader: "u-lead",
         members: ["u-lead", "u-dev"],
         expand: {
@@ -110,6 +111,7 @@ describe("teams api — fetchTeamDetail", () => {
         domain: "Smart Cities",
       },
       leader: { id: "u-lead", name: "Arjun Patel" },
+      deadline: "2026-08-16T12:00:00.000Z",
       members: [
         { id: "u-lead", name: "Arjun Patel" },
         { id: "u-dev", name: "Priya Sharma" },
@@ -135,6 +137,26 @@ describe("teams api — fetchTeamDetail", () => {
     const detail = await api.fetchTeamDetail("t2");
 
     expect(detail.problemStatement).toBeNull();
+  });
+
+  it("exposes the deadline for the dashboard countdown", async () => {
+    const service = makeService({
+      getOne: vi.fn(async () => ({
+        id: "t3",
+        name: "Countdown Crew",
+        status: "open",
+        rolesNeeded: ["Developer"],
+        deadline: "2026-08-16T12:00:00.000Z",
+        leader: "u-lead",
+        members: ["u-lead"],
+        expand: { leader: { id: "u-lead", name: "Arjun Patel" } },
+      })),
+    });
+    const api = createTeamsApi(makeClientWith(service));
+
+    const detail = await api.fetchTeamDetail("t3");
+
+    expect(detail.deadline).toBe("2026-08-16T12:00:00.000Z");
   });
 });
 

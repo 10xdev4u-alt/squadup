@@ -115,3 +115,55 @@ describe("isSelfJoin", () => {
     expect(isSelfJoin({ leader: "u-lead" }, "u-other")).toBe(false);
   });
 });
+
+// Countdown / deadline domain tests (§4B, §9 — team dashboard).
+// Pure functions only; the hooks wire them server-side.
+import { describe, it, expect } from "vitest";
+import {
+  TEAM_DEADLINE_HOURS,
+  deadlineFor,
+  hoursUntil,
+  isUrgent,
+} from "./domain.js";
+
+describe("TEAM_DEADLINE_HOURS", () => {
+  it("defaults to a 48-hour build window", () => {
+    expect(TEAM_DEADLINE_HOURS).toBe(48);
+  });
+});
+
+describe("deadlineFor", () => {
+  it("adds the team window to the creation instant", () => {
+    const createdAt = new Date("2026-08-14T12:00:00Z");
+    const deadline = new Date(deadlineFor(createdAt));
+    expect(deadline.toISOString()).toBe("2026-08-16T12:00:00.000Z");
+  });
+});
+
+describe("hoursUntil", () => {
+  const deadline = new Date("2026-08-16T12:00:00Z");
+
+  it("reports the remaining time in hours", () => {
+    const now = new Date("2026-08-15T12:00:00Z");
+    expect(hoursUntil(deadline, now)).toBe(24);
+  });
+
+  it("is zero once the deadline has passed", () => {
+    const now = new Date("2026-08-17T12:00:00Z");
+    expect(hoursUntil(deadline, now)).toBe(0);
+  });
+});
+
+describe("isUrgent", () => {
+  it("is true below the 24-hour threshold", () => {
+    expect(isUrgent(23.5 * 3600 * 1000)).toBe(true);
+  });
+
+  it("is false at exactly 24 hours", () => {
+    expect(isUrgent(24 * 3600 * 1000)).toBe(false);
+  });
+
+  it("is false when the deadline has passed", () => {
+    expect(isUrgent(0)).toBe(false);
+  });
+});
