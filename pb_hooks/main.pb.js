@@ -8,6 +8,8 @@ const {
   isOtpEmailAllowed,
   isDuplicateSwipe,
   shouldCreateMatch,
+  findUserTeam,
+  generateInviteCode,
   orderMatchPair,
 } = require("./domain.js");
 
@@ -136,4 +138,54 @@ onRecordBeforeCreateRequest(async (e) => {
 
 onRecordBeforeUpdateRequest(async (e) => {
   await ensureMembersAreFree(e.app.dao(), e.record.get("members"), e.record.id);
+}, "teams");
+
+// teams: creation derives the server-owned fields (§8) and enforces the
+// single-active-team rule for the creator (§2). The creator leaves the deck
+// immediately (status -> in_team, which the deck's status='solo' filter uses).
+const TEAM_AUTH_MSG = "Authentication required to create a team.";
+
+onRecordBeforeCreateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const leaderId = e.request.auth && e.request.auth.id;
+  if (!leaderId) {
+    throw new Error(TEAM_AUTH_MSG);
+  }
+  const allTeams = await dao.findRecordsByFilter(
+    "teams",
+    "id != ''",
+    1000,
+    0,
+    {}
+  );
+  if (findUserTeam(allTeams, leaderId)) {
+    throw new Error(SINGLE_TEAM_MSG);
+  }
+
+  // Server-owned fields — never trust the client body (§8).
+  rec.set("leader", leaderId);
+  rec.set("status", "open");
+  rec.set("members", [leaderId]);
+
+  // Unique invite code with a few collision retries (unique index backstop).
+  let inviteCode = generateInviteCode();
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const existing = await dao.findRecordsByFilter(
+      "teams",
+      "inviteCode = {:code}",
+      1,
+      0,
+      { code: inviteCode }
+    );
+    if (existing.length === 0) break;
+    inviteCode = generateInviteCode();
+  }
+  rec.set("inviteCode", inviteCode);
+
+  // Flip the creator to in_team BEFORE the team saves: if the save fails they
+  // can retry, and the deck (status='solo') already excludes them on success.
+  const user = await dao.findRecordById("users", leaderId);
+  user.set("status", "in_team");
+  await dao.save(user);
 }, "teams");
