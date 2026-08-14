@@ -8,6 +8,7 @@ const {
   isOtpEmailAllowed,
   isDuplicateSwipe,
   shouldCreateMatch,
+  isMatchMember,
   orderMatchPair,
 } = require("./domain.js");
 
@@ -137,3 +138,25 @@ onRecordBeforeCreateRequest(async (e) => {
 onRecordBeforeUpdateRequest(async (e) => {
   await ensureMembersAreFree(e.app.dao(), e.record.get("members"), e.record.id);
 }, "teams");
+
+// match_messages: only the two matched users may write, and the sender is
+// always the requester (never client-supplied) — chat privacy (§2 Mode 1).
+// The collection rule scopes reads; this hook scopes writes.
+const NOT_MATCH_MEMBER_MSG = "You are not a member of this match.";
+
+onRecordBeforeCreateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const match = await dao.findRecordById("matches", rec.get("match"));
+  const senderId = e.request.auth && e.request.auth.id;
+  if (
+    !senderId ||
+    !isMatchMember(
+      { userA: match.get("userA"), userB: match.get("userB") },
+      senderId
+    )
+  ) {
+    throw new Error(NOT_MATCH_MEMBER_MSG);
+  }
+  rec.set("sender", senderId);
+}, "match_messages");
