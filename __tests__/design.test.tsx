@@ -8,8 +8,8 @@ describe("design tokens page", () => {
     expect(
       screen.getByRole("heading", { name: /design tokens/i })
     ).toBeInTheDocument();
-    expect(screen.getByText("Electric Indigo")).toBeInTheDocument();
-    expect(screen.getByText("Signal Green")).toBeInTheDocument();
+    expect(screen.getByText("Graphite Base")).toBeInTheDocument();
+    expect(screen.getByText("Hairline")).toBeInTheDocument();
     expect(screen.getByText("Space Grotesk")).toBeInTheDocument();
     expect(screen.getByText("Inter")).toBeInTheDocument();
     expect(screen.getByText("JetBrains Mono")).toBeInTheDocument();

@@ -3,20 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --color-background: #0a0a0f;
-  --color-surface: #14141c;
-  --color-elevated: #1c1c27;
-  --color-border: #2a2a38;
-  --color-primary: #6c5ce7;
-  --color-secondary: #00e5ff;
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-text-primary: #f5f5f7;
-  --color-text-secondary: #9ca3af;
+  /* Supabase-inspired dark: neutral graphite surfaces, hairline borders,
+     one green accent. Restrained radii — enterprise, not app-like. */
+  --color-background: #16161a;
+  --color-surface: #1d1d22;
+  --color-elevated: #24242b;
+  --color-border: #2e2e37;
+  --color-primary: #3ecf8e;
+  --color-primary-foreground: #08120c;
+  --color-secondary: #4b4b56;
+  --color-secondary-foreground: #e7e7ea;
+  --color-success: #3ecf8e;
+  --color-warning: #d9822b;
+  --color-danger: #f05252;
+  --color-text-primary: #e7e7ea;
+  --color-text-secondary: #9a9aa3;
   --radius-card: 12px;
   --radius-control: 8px;
-  --shadow-glow: 0 0 20px rgba(108, 92, 231, 0.15);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 body {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import TeamNavLink from "@/components/team-nav-link";
 import AdminNavLink from "@/components/admin-nav-link";
 
@@ -10,6 +10,34 @@ const NAV_LINKS = [
   { href: "/profile", label: "Profile" },
 ];
 
+function isActive(href: string, pathname: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function NavLink({ href, label }: { href: string; label: string }) {
+  const [pathname, setPathname] = useState("");
+  useEffect(() => {
+    setPathname(window.location.pathname);
+  }, []);
+  const active = isActive(href, pathname);
+
+  return (
+    <li>
+      <Link
+        href={href}
+        aria-current={active ? "page" : undefined}
+        className={`rounded-control px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+          active
+            ? "bg-elevated font-medium text-foreground"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        {label}
+      </Link>
+    </li>
+  );
+}
+
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -19,26 +47,26 @@ export default function Layout({ children }: { children: ReactNode }) {
       >
         Skip to content
       </a>
-      <header className="flex items-center justify-between border-b border-border px-6 py-4">
-        <span className="font-display font-semibold">SquadUp</span>
-        <nav aria-label="Main">
-          <ul className="flex items-center gap-4">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-            <TeamNavLink />
-            <AdminNavLink />
-          </ul>
-        </nav>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
+          <Link
+            href="/"
+            className="font-display text-base font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          >
+            SquadUp
+          </Link>
+          <nav aria-label="Main">
+            <ul className="flex items-center gap-1">
+              {NAV_LINKS.map((link) => (
+                <NavLink key={link.href} href={link.href} label={link.label} />
+              ))}
+              <TeamNavLink />
+              <AdminNavLink />
+            </ul>
+          </nav>
+        </div>
       </header>
-      <main id="main-content" className="mx-auto max-w-5xl px-6 py-10">
+      <main id="main-content" className="mx-auto max-w-7xl px-6 py-10">
         {children}
       </main>
     </div>
