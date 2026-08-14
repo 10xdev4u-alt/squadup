@@ -40,9 +40,15 @@ export function createRealtimeApi(client: PbClient) {
     meId: string,
     onMatch: (event: MatchEvent) => void
   ): Promise<UnsubscribeFunc> {
+    // Dedup by record id: PB replays events on reconnect, and without this
+    // every replay fires a duplicate match toast (§5.14).
+    const seen = new Set<string>();
     return client.collection("matches").subscribe(
       "*",
       (event) => {
+        const id = String(event.record.id ?? "");
+        if (seen.has(id)) return;
+        seen.add(id);
         onMatch(toMatchEvent(event.record, meId));
       },
       {
