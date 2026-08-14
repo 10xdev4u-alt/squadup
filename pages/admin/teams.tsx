@@ -5,16 +5,14 @@
 // calls, no write buttons. Filters are client-side over the paginated fetch.
 // ============================================================================
 
-import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/Layout";
 import EmptyState from "@/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRequireAuth } from "@/lib/use-require-auth";
+import { useRequireAdmin } from "@/lib/use-require-auth";
 import { api, getApiErrorMessage } from "@/lib/api";
-import { getClient } from "@/lib/api/client";
 import { filterAdminTeams } from "@/lib/admin-filter";
 import type { AdminTeamRow } from "@/lib/api/teams";
 import type { ProblemDomain } from "@/types/squadup";
@@ -33,25 +31,13 @@ const DOMAIN_OPTIONS: ProblemDomain[] = [
 ];
 
 export default function AdminTeamsPage() {
-  const authed = useRequireAuth();
-  const router = useRouter();
+  const authed = useRequireAdmin();
   const [rows, setRows] = useState<AdminTeamRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
   const [domain, setDomain] = useState("");
   const [query, setQuery] = useState("");
-
-  // Admin gate: the flag is server-seeded, so a non-admin gets bounced.
-  useEffect(() => {
-    const record = getClient().authStore.record as {
-      id: string;
-      admin?: boolean;
-    } | null;
-    if (authed && record && record.admin !== true) {
-      router.replace("/");
-    }
-  }, [authed, router]);
 
   useEffect(() => {
     let cancelled = false;

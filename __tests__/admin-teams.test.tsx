@@ -21,6 +21,16 @@ vi.mock("@/lib/api/client", () => ({
 
 vi.mock("@/lib/use-require-auth", () => ({
   useRequireAuth: () => true,
+  // Mirrors the real hook: admin reads the mocked session, non-admins bounce.
+  useRequireAdmin: () => {
+    const client = getClientMock();
+    const record = client?.authStore?.record as { admin?: boolean } | undefined;
+    const isAdmin = Boolean(record && record.admin === true);
+    if (!isAdmin) {
+      replaceMock("/");
+    }
+    return isAdmin;
+  },
 }));
 
 vi.mock("next/router", () => ({
