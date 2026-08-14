@@ -14,6 +14,7 @@ import { createRealtimeApi } from "@/lib/api/realtime";
 import { createMatchesApi } from "@/lib/api/matches";
 import { createJoinRequestsApi } from "@/lib/api/join-requests";
 import { createTasksApi } from "@/lib/api/tasks";
+import { createResourcesApi } from "@/lib/api/resources";
 
 export function api() {
   const client = getClient();
@@ -27,6 +28,7 @@ export function api() {
     matches: createMatchesApi(client),
     joinRequests: createJoinRequestsApi(client),
     tasks: createTasksApi(client),
+    resources: createResourcesApi(client),
   };
 }
 

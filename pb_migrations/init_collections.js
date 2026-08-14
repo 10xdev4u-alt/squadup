@@ -342,9 +342,9 @@ migrate(
     const resources = new Collection({
       type: "base",
       name: "resources",
-      listRule: "@request.auth.id != null",
-      viewRule: "@request.auth.id != null",
-      createRule: "@request.auth.id != null",
+      listRule: "team.members ~ @request.auth.id",
+      viewRule: "team.members ~ @request.auth.id",
+      createRule: "team.members ~ @request.auth.id",
       fields: [
         {
           type: "relation",

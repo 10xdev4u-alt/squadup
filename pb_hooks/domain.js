@@ -148,3 +148,34 @@ export function isTeamMember(team, userId) {
   if (!team || !userId) return false;
   return (team.members || []).includes(userId);
 }
+
+// Resource link detection (§4C — universal embeds). Server-side source of
+// truth: the create hook derives type/embeddable from the URL. Hostname must
+// END with the known domain — lookalikes like "figma.com.evil.example" or
+// "canva.com@evil.example" fall through to `other` (spoof guard).
+const EMBEDDABLE_DOMAINS = { "figma.com": true, "excalidraw.com": true };
+const KNOWN_DOMAINS = [
+  "figma.com",
+  "canva.com",
+  "drive.google.com",
+  "github.com",
+  "excalidraw.com",
+];
+
+export function detectResourceType(url) {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    const match = KNOWN_DOMAINS.find(
+      (d) => hostname === d || hostname.endsWith("." + d)
+    );
+    if (!match) {
+      return { type: "other", embeddable: false };
+    }
+    return {
+      type: match.split(".")[0],
+      embeddable: EMBEDDABLE_DOMAINS[match] === true,
+    };
+  } catch {
+    return { type: "other", embeddable: false };
+  }
+}
