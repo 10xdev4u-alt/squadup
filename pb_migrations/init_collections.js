@@ -297,10 +297,10 @@ migrate(
     const tasks = new Collection({
       type: "base",
       name: "tasks",
-      listRule: "@request.auth.id != null",
-      viewRule: "@request.auth.id != null",
-      createRule: "@request.auth.id != null",
-      updateRule: "@request.auth.id != null",
+      listRule: "team.members ~ @request.auth.id",
+      viewRule: "team.members ~ @request.auth.id",
+      createRule: "team.members ~ @request.auth.id",
+      updateRule: "team.members ~ @request.auth.id",
       fields: [
         {
           type: "relation",

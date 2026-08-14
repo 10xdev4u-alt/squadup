@@ -13,6 +13,7 @@ const {
   isMatchMember,
   hasPendingRequest,
   isSelfJoin,
+  isTeamMember,
   TEAM_DEADLINE_HOURS,
   deadlineFor,
 
@@ -271,6 +272,34 @@ onRecordBeforeCreateRequest(async (e) => {
   rec.set("applicant", applicantId);
   rec.set("status", "pending");
 }, "join_requests");
+
+// tasks: workspace access (§4B, §8). Only team members may create or move
+// cards; status/priority defaults are server-owned. The collection rules
+// (team.members ~ @request.auth.id) scope reads/writes; these hooks scope
+// the record-level checks and derive the defaults.
+const NOT_TEAM_MEMBER_MSG = "You are not a member of this team.";
+
+onRecordBeforeCreateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const userId = e.request.auth && e.request.auth.id;
+  const team = await dao.findRecordById("teams", rec.get("team"));
+  if (!userId || !isTeamMember({ members: team.get("members") }, userId)) {
+    throw new Error(NOT_TEAM_MEMBER_MSG);
+  }
+  if (!rec.get("status")) rec.set("status", "idea");
+  if (!rec.get("priority")) rec.set("priority", "medium");
+}, "tasks");
+
+onRecordBeforeUpdateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const userId = e.request.auth && e.request.auth.id;
+  const team = await dao.findRecordById("teams", rec.get("team"));
+  if (!userId || !isTeamMember({ members: team.get("members") }, userId)) {
+    throw new Error(NOT_TEAM_MEMBER_MSG);
+  }
+}, "tasks");
 
 // join_requests: only the leader may decide; accept adds the member and
 // flips their status to in_team (leaves the deck, same as team creation).

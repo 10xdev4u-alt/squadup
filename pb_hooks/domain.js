@@ -136,3 +136,9 @@ export function hoursUntil(deadline, now) {
 export function isUrgent(remainingMs) {
   return remainingMs > 0 && remainingMs < 24 * 3600 * 1000;
 }
+
+/** True when the user is a member of the team (workspace access, §4B). */
+export function isTeamMember(team, userId) {
+  if (!team || !userId) return false;
+  return (team.members || []).includes(userId);
+}
