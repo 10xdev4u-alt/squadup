@@ -123,3 +123,85 @@ describe("tickets api — messages", () => {
     expect(messages).toHaveLength(1);
   });
 });
+
+describe("tickets api — thread data layer", () => {
+  it("fetches a single ticket by id", async () => {
+    const { client, ticketsService } = makeClient();
+    ticketsService.getOne = vi.fn(async () => ({
+      id: "tk1",
+      team: "t1",
+      title: "Help with PPT",
+      status: "open",
+      assignedMentor: "",
+      createdAt: "2026-08-14T08:00:00.000Z",
+    }));
+    const api = createTicketsApi(client);
+
+    const ticket = await api.fetchTicket("tk1");
+
+    expect(ticketsService.getOne).toHaveBeenCalledWith("tk1");
+    expect(ticket).toMatchObject({ id: "tk1", title: "Help with PPT" });
+  });
+
+  it("expands sender names on the thread", async () => {
+    const { client, messagesService } = makeClient({
+      messages: [
+        {
+          id: "m1",
+          ticket: "tk1",
+          sender: "u-a",
+          message: "Hi",
+          createdAt: "2026-08-14T08:00:00.000Z",
+          expand: {
+            sender: { id: "u-a", name: "Arjun Patel" },
+          },
+        },
+      ],
+    });
+    const api = createTicketsApi(client);
+
+    const messages = await api.fetchTicketMessages("tk1");
+
+    expect(messagesService.getList).toHaveBeenCalledWith(
+      1,
+      200,
+      expect.objectContaining({ expand: "sender" })
+    );
+    expect(messages[0]).toMatchObject({
+      sender: "u-a",
+      senderName: "Arjun Patel",
+    });
+  });
+
+  it("subscribes to live messages with reconnect dedupe", async () => {
+    const { client, messagesService } = makeClient();
+    const onMessage = vi.fn();
+    const api = createTicketsApi(client);
+
+    await api.subscribeTicketMessages("tk1", onMessage);
+
+    expect(messagesService.subscribe).toHaveBeenCalledWith(
+      "*",
+      expect.any(Function),
+      expect.objectContaining({ filter: expect.stringContaining("tk1") })
+    );
+
+    const cb = (messagesService.subscribe as ReturnType<typeof vi.fn>).mock
+      .calls[0]?.[1] as (e: {
+      action: string;
+      record: Record<string, unknown>;
+    }) => void;
+    const record = {
+      id: "m2",
+      ticket: "tk1",
+      sender: "u-a",
+      message: "Replay",
+      createdAt: "2026-08-14T08:00:00.000Z",
+    };
+    // Reconnect replays the same event — dedupe must drop the second.
+    cb({ action: "create", record });
+    cb({ action: "create", record });
+
+    expect(onMessage).toHaveBeenCalledTimes(1);
+  });
+});

@@ -8,7 +8,7 @@ import type {
   TicketMessage,
   TicketStatus,
 } from "@/types/squadup";
-import type { PbClient } from "@/lib/api/types";
+import type { PbClient, UnsubscribeFunc } from "@/lib/api/types";
 import {
   clampPageParams,
   toPaginated,
@@ -34,10 +34,13 @@ function toTicket(record: Record<string, unknown>): MentorTicket {
 }
 
 function toMessage(record: Record<string, unknown>): TicketMessage {
+  const expand = (record.expand ?? {}) as Record<string, unknown>;
+  const sender = expand.sender as { id?: string; name?: string } | undefined;
   return {
     id: String(record.id),
     ticket: String(record.ticket),
     sender: String(record.sender),
+    senderName: sender?.name ?? "",
     message: String(record.message),
     attachment: record.attachment == null ? null : String(record.attachment),
     createdAt: String(record.createdAt),
@@ -114,7 +117,17 @@ export function createTicketsApi(client: PbClient) {
     }
   }
 
-  /** Thread oldest-first — sender is server-derived. */
+  /** Single ticket — thread header needs title + status. */
+  async function fetchTicket(ticketId: string): Promise<MentorTicket> {
+    try {
+      const record = await collection().getOne(ticketId);
+      return toTicket(record);
+    } catch (err) {
+      throw normalizeError(err);
+    }
+  }
+
+  /** Thread oldest-first with sender names — sender is server-derived. */
   async function fetchTicketMessages(
     ticketId: string
   ): Promise<TicketMessage[]> {
@@ -124,6 +137,7 @@ export function createTicketsApi(client: PbClient) {
         .getList(1, 200, {
           filter: `ticket = ${JSON.stringify(ticketId)}`,
           sort: "created",
+          expand: "sender",
         });
       return result.items.map((item) =>
         toMessage(item as Record<string, unknown>)
@@ -133,12 +147,37 @@ export function createTicketsApi(client: PbClient) {
     }
   }
 
+  /**
+   * Live thread sync. Dedupes by message id so a reconnect that replays
+   * already-seen events never double-appends a message.
+   */
+  async function subscribeTicketMessages(
+    ticketId: string,
+    onMessage: (message: TicketMessage) => void
+  ): Promise<UnsubscribeFunc> {
+    const seen = new Set<string>();
+    return client.collection("ticket_messages").subscribe(
+      "*",
+      (e) => {
+        if (e.action !== "update" && e.action !== "create") return;
+        const message = toMessage(e.record as Record<string, unknown>);
+        if (String(message.ticket) !== ticketId) return;
+        if (seen.has(message.id)) return;
+        seen.add(message.id);
+        onMessage(message);
+      },
+      { filter: `ticket = '${ticketId}'` }
+    );
+  }
+
   return {
     createTicket,
     fetchTickets,
+    fetchTicket,
     updateTicketStatus,
     fetchMentorInbox,
     createTicketMessage,
     fetchTicketMessages,
+    subscribeTicketMessages,
   };
 }

@@ -16,6 +16,7 @@ function makeUser(
     primaryRole: "Developer",
     status: "solo",
     lookingFor: "",
+    mentor: false,
     ...overrides,
   };
 }

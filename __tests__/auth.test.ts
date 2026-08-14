@@ -15,6 +15,7 @@ const authRecord = {
   primaryRole: "Developer",
   status: "solo",
   lookingFor: "AI/ML dev for healthcare idea",
+  mentor: false,
 };
 
 describe("auth api", () => {
@@ -54,6 +55,7 @@ describe("auth api", () => {
       primaryRole: "Developer",
       status: "solo",
       lookingFor: "AI/ML dev for healthcare idea",
+      mentor: false,
     });
     // email stays out of the DTO — not part of the public User shape.
     expect("email" in session.user).toBe(false);
