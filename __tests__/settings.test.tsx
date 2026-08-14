@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import TeamSettingsPage from "@/pages/team/[id]/settings";
@@ -140,5 +140,18 @@ describe("team settings — /team/[id]/settings", () => {
         members: ["u-lead"],
       })
     );
+  });
+  it("copies the invite code to the clipboard", async () => {
+    fetchTeamDetailMock.mockResolvedValue(makeDetail());
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+
+    render(<TeamSettingsPage />);
+
+    const code = await screen.findByTestId("invite-code");
+    expect(code).toHaveTextContent("INVITE42");
+    fireEvent.click(screen.getByRole("button", { name: "Copy invite code" }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("INVITE42"));
+    expect(screen.getByText("Copied")).toBeInTheDocument();
   });
 });
