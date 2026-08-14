@@ -9,6 +9,7 @@
 const MSG = Object.freeze({
   COLLEGE_EMAIL: "Only college email addresses can register.",
   DUPLICATE_SWIPE: "You have already swiped on this profile.",
+  SELF_SWIPE: "You cannot swipe on yourself.",
   SINGLE_TEAM: "You are already in a team.",
   OTP_GATE:
     "Only college email addresses (or allowlisted accounts) can request a login code.",
@@ -35,7 +36,9 @@ function ensureMembersAreFree(app, members, excludeTeamId) {
   for (const memberId of members || []) {
     const teams = app.findRecordsByFilter(
       "teams",
-      "members ~ {:id}",
+      // ?~ is array-contains; ~ is substring — the latter would match a
+      // user id contained inside another id, never a real membership.
+      "members ?~ {:id}",
       "id",
       10,
       0,
@@ -64,4 +67,17 @@ function recordMetric(app, event) {
   }
 }
 
-module.exports = { MSG, ensureMembersAreFree, recordMetric };
+/**
+ * Whether the user already belongs to another team. Per-user query (not a
+ * full-table scan), so the check stays correct past 1000 teams.
+ */
+function userHasTeam(app, userId, excludeTeamId) {
+  try {
+    ensureMembersAreFree(app, [userId], excludeTeamId);
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+module.exports = { MSG, ensureMembersAreFree, userHasTeam, recordMetric };
