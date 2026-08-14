@@ -322,3 +322,48 @@ describe("canModifyPrivilege", () => {
     expect(canModifyPrivilege(false, [])).toBe(true);
   });
 });
+
+// Beta launch (I27 — §11 Phase 8, §12). Seeding is idempotent and opt-in;
+// metric events are anonymous by design (no user ids — the no-PII rule).
+import { shouldSeed, toMetricEvent } from "./domain.js";
+
+describe("shouldSeed", () => {
+  it("seeds only when the teams collection is empty", () => {
+    expect(shouldSeed(0)).toBe(true);
+    expect(shouldSeed(1)).toBe(false);
+    expect(shouldSeed(5)).toBe(false);
+  });
+});
+
+describe("toMetricEvent", () => {
+  it("maps a team creation to an anonymous event", () => {
+    expect(toMetricEvent("teams", "create", {})).toMatchObject({
+      action: "team_created",
+      at: expect.any(String),
+    });
+  });
+
+  it("maps a resolved ticket to an anonymous event", () => {
+    expect(
+      toMetricEvent("mentor_tickets", "update", { status: "resolved" })
+    ).toMatchObject({
+      action: "ticket_resolved",
+      at: expect.any(String),
+    });
+  });
+
+  it("maps a task landing in final_pitch to an anonymous event", () => {
+    expect(
+      toMetricEvent("tasks", "update", { status: "final_pitch" })
+    ).toMatchObject({
+      action: "task_final_pitch",
+      at: expect.any(String),
+    });
+  });
+
+  it("returns null for uninteresting events", () => {
+    expect(toMetricEvent("teams", "update", {})).toBeNull();
+    expect(toMetricEvent("tasks", "create", {})).toBeNull();
+    expect(toMetricEvent("users", "create", {})).toBeNull();
+  });
+});

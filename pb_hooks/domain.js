@@ -213,3 +213,36 @@ export function canModifyPrivilege(requesterIsSuperuser, changedFields) {
   const privileged = ["admin", "mentor"];
   return !(changedFields || []).some((f) => privileged.includes(f));
 }
+
+// Beta launch (I27 — §11 Phase 8, §12).
+
+/** Seed only into an empty database — never clobber real data. */
+export function shouldSeed(teamsCount) {
+  return teamsCount === 0;
+}
+
+/**
+ * §12 metric events — anonymous by design (no user ids, no emails). Returns
+ * null for events the metrics don't track, so callers can skip harmlessly.
+ */
+export function toMetricEvent(collectionName, operation, recordData = {}) {
+  const at = new Date().toISOString();
+  if (collectionName === "teams" && operation === "create") {
+    return { action: "team_created", at };
+  }
+  if (
+    collectionName === "mentor_tickets" &&
+    operation === "update" &&
+    recordData.status === "resolved"
+  ) {
+    return { action: "ticket_resolved", at };
+  }
+  if (
+    collectionName === "tasks" &&
+    operation === "update" &&
+    recordData.status === "final_pitch"
+  ) {
+    return { action: "task_final_pitch", at };
+  }
+  return null;
+}
