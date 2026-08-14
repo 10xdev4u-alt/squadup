@@ -3,8 +3,14 @@ import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 import PageHeader from "@/components/page-header";
 import { api, getApiErrorMessage, getCurrentUser } from "@/lib/api";
+import { useRequireAuth } from "@/lib/use-require-auth";
 import { getClient } from "@/lib/api/client";
-import { PRIMARY_ROLES, SKILLS, type Skill } from "@/types/squadup";
+import {
+  PRIMARY_ROLES,
+  SKILLS,
+  type PrimaryRole,
+  type Skill,
+} from "@/types/squadup";
 import {
   MAX_SKILLS,
   validateSkills,
@@ -12,11 +18,12 @@ import {
 } from "@/lib/validate-skills";
 
 export default function OnboardingSkills() {
+  useRequireAuth();
   const router = useRouter();
   const user = getCurrentUser(getClient());
 
   const [skills, setSkills] = useState<Skill[]>([]);
-  const [primaryRole, setPrimaryRole] = useState<string | null>(null);
+  const [primaryRole, setPrimaryRole] = useState<PrimaryRole | null>(null);
   const [errors, setErrors] = useState<SkillsErrors>({});
   const [apiError, setApiError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -39,7 +46,7 @@ export default function OnboardingSkills() {
 
     const { errors: nextErrors } = validateSkills({
       skills,
-      primaryRole: primaryRole as never,
+      primaryRole,
     });
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -52,7 +59,7 @@ export default function OnboardingSkills() {
         bio: user.bio,
         githubUrl: user.githubUrl,
         skills,
-        primaryRole: primaryRole as never,
+        primaryRole,
       });
       router.replace("/discover");
     } catch (err) {

@@ -56,9 +56,9 @@ describe("Discover page", () => {
   it("shows the skeleton while the deck loads", () => {
     fetchDeckMock.mockImplementation(() => new Promise(() => {}));
 
-    const { container } = render(<Discover />);
+    render(<Discover />);
 
-    expect(container.querySelectorAll('[aria-hidden="true"]').length).toBe(3);
+    expect(screen.getByTestId("deck-skeleton")).toBeInTheDocument();
   });
 
   it("renders the deck once loaded", async () => {

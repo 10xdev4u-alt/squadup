@@ -13,9 +13,10 @@
   --color-primary-foreground: #08120c;
   --color-secondary: #4b4b56;
   --color-secondary-foreground: #e7e7ea;
-  --color-success: #3ecf8e;
-  --color-warning: #d9822b;
+  --color-success: #22c55e;
+  --color-warning: #b86e1f;
   --color-danger: #f05252;
+  --color-muted: #1e1e25;
   --color-text-primary: #e7e7ea;
   --color-text-secondary: #9a9aa3;
   --radius-card: 12px;

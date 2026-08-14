@@ -10,9 +10,10 @@ describe("design tokens", () => {
       border: "#2E2E37",
       primary: "#3ECF8E",
       secondary: "#4B4B56",
-      success: "#3ECF8E",
-      warning: "#D9822B",
+      success: "#22C55E",
+      warning: "#B86E1F",
       danger: "#F05252",
+      muted: "#1E1E25",
       textPrimary: "#E7E7EA",
       textSecondary: "#9A9AA3",
     });

@@ -48,10 +48,7 @@ function KanbanCard({
     <article className="rounded-control border border-border bg-background p-3 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-sm font-medium leading-snug">{task.title}</h3>
-        <Badge
-          variant="secondary"
-          className={priorityClass(task.priority)}
-        >
+        <Badge variant="secondary" className={priorityClass(task.priority)}>
           {task.priority}
         </Badge>
       </div>
@@ -91,7 +88,7 @@ function Column({
     <section
       ref={setNodeRef}
       aria-labelledby={`col-${status}`}
-      className={`flex min-h-[16rem] flex-col rounded-card border bg-card/50 p-3 transition-colors ${
+      className={`flex min-h-[16rem] min-w-[15rem] flex-col rounded-card border bg-card/50 p-3 transition-colors lg:min-w-0 ${
         isOver ? "border-primary/60" : "border-border"
       }`}
     >
@@ -99,7 +96,8 @@ function Column({
         id={`col-${status}`}
         className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
       >
-        {label} <span className="ml-1 text-foreground/60">({tasks.length})</span>
+        {label}{" "}
+        <span className="ml-1 text-foreground/60">({tasks.length})</span>
       </h2>
       <div className="flex flex-1 flex-col gap-2">
         {tasks.map((task) => (
@@ -132,7 +130,11 @@ export default function KanbanBoardPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const sensors = useSensors(useSensor(PointerSensor));
+  // 8px of movement before a drag starts — lets mobile users scroll the
+  // board without accidentally picking up a card (§4.8).
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
 
   const load = useCallback(async () => {
     try {
@@ -170,9 +172,7 @@ export default function KanbanBoardPage() {
   async function handleMove(taskId: string, status: TaskStatus) {
     try {
       const updated = await api().tasks.updateTaskStatus(taskId, status);
-      setTasks((prev) =>
-        prev.map((t) => (t.id === taskId ? updated : t))
-      );
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
     } catch (err) {
       setError(getApiErrorMessage(err));
     }
@@ -212,7 +212,9 @@ export default function KanbanBoardPage() {
     return (
       <Layout>
         <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-          <h1 className="text-2xl font-semibold">Couldn&apos;t load this board</h1>
+          <h1 className="text-2xl font-semibold">
+            Couldn&apos;t load this board
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">{error}</p>
           <Link
             href={`/team/${teamId}`}
@@ -287,14 +289,17 @@ export default function KanbanBoardPage() {
         </form>
 
         {loading ? (
-          <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-8 flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5">
             {COLUMNS.map((c) => (
-              <div key={c.status} className="h-56 animate-pulse rounded-card bg-muted" />
+              <div
+                key={c.status}
+                className="h-56 animate-pulse rounded-card bg-muted"
+              />
             ))}
           </div>
         ) : (
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            <div className="mt-8 flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5">
               {COLUMNS.map((column) => (
                 <Column
                   key={column.status}

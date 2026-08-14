@@ -25,10 +25,13 @@ export interface FetchRequestsOptions {
 }
 
 function toJoinRequest(record: Record<string, unknown>): JoinRequest {
+  const expand = (record.expand ?? {}) as Record<string, unknown>;
+  const applicantRecord = expand.applicant as { name?: string } | undefined;
   return {
     id: String(record.id),
     team: String(record.team),
     applicant: String(record.applicant),
+    applicantName: applicantRecord?.name ?? null,
     roleAppliedFor: record.roleAppliedFor as PrimaryRole,
     message: String(record.message ?? ""),
     status: record.status as JoinRequestStatus,
@@ -71,6 +74,8 @@ export function createJoinRequestsApi(client: PbClient) {
       const list = await collection().getList(1, 50, {
         sort: "-created",
         filter,
+        // §4.6 — the leader needs to see WHO is applying.
+        expand: "applicant",
       });
       return list.items.map((r) => toJoinRequest(r as Record<string, unknown>));
     } catch (err) {

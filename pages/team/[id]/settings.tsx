@@ -34,7 +34,16 @@ export default function TeamSettingsPage() {
   const meId = getCurrentUser(getClient())?.id ?? "";
 
   const [team, setTeam] = useState<TeamDetail | null>(null);
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function copyInvite() {
+    if (!team?.inviteCode) return;
+    void navigator.clipboard.writeText(team.inviteCode).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    });
+  }
   const [loading, setLoading] = useState(true);
 
   const [chatLink, setChatLink] = useState("");
@@ -187,12 +196,22 @@ export default function TeamSettingsPage() {
               <span className="text-xs font-medium text-muted-foreground">
                 Invite code — share to let teammates join (§2 Mode 2)
               </span>
-              <code
-                data-testid="invite-code"
-                className="rounded-control border border-border bg-background px-3 py-2 font-mono text-base"
-              >
-                {team.inviteCode ?? "—"}
-              </code>
+              <div className="flex items-center gap-2">
+                <code
+                  data-testid="invite-code"
+                  className="rounded-control border border-border bg-background px-3 py-2 font-mono text-base"
+                >
+                  {team.inviteCode ?? "—"}
+                </code>
+                <button
+                  type="button"
+                  onClick={copyInvite}
+                  aria-label="Copy invite code"
+                  className="rounded-control border border-border bg-surface px-3 py-2 text-xs font-medium transition-colors hover:bg-elevated focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
             </div>
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-xs font-medium text-muted-foreground">

@@ -19,7 +19,7 @@ const config: Config = {
         warning: "var(--color-warning)",
         danger: "var(--color-danger)",
         foreground: "var(--color-text-primary)",
-        muted: "var(--color-text-secondary)",
+        muted: "var(--color-muted)",
         // shadcn/ui semantic aliases, all mapping to the §6 tokens above
         "primary-foreground": "var(--color-primary-foreground)",
         card: "var(--color-surface)",

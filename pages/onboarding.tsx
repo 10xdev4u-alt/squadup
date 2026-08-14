@@ -3,10 +3,12 @@ import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
 import PageHeader from "@/components/page-header";
 import { api, getApiErrorMessage, getCurrentUser } from "@/lib/api";
+import { useRequireAuth } from "@/lib/use-require-auth";
 import { getClient } from "@/lib/api/client";
 import { validateProfile, type ProfileErrors } from "@/lib/validate-profile";
 
 export default function Onboarding() {
+  useRequireAuth();
   const router = useRouter();
   const user = getCurrentUser(getClient());
 
