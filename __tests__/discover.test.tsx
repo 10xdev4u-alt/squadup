@@ -58,7 +58,10 @@ describe("Discover page", () => {
 
     const { container } = render(<Discover />);
 
-    expect(container.querySelectorAll('[aria-hidden="true"]').length).toBe(3);
+    // The deck skeleton renders exactly three shimmer blocks; scope the
+    // count to the main region so the tab bar's decorative icons don't count.
+    const main = container.querySelector("main");
+    expect(main?.querySelectorAll('[aria-hidden="true"]').length).toBe(3);
   });
 
   it("renders the deck once loaded", async () => {

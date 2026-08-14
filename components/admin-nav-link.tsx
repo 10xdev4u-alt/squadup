@@ -13,13 +13,11 @@ export default function AdminNavLink() {
   if (!user?.admin) return null;
 
   return (
-    <li>
-      <Link
-        href="/admin"
-        className="text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-      >
-        Admin
-      </Link>
-    </li>
+    <Link
+      href="/admin"
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    >
+      Admin
+    </Link>
   );
 }

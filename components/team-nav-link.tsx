@@ -43,13 +43,11 @@ export default function TeamNavLink() {
   if (!team) return null;
 
   return (
-    <li>
-      <Link
-        href={`/team/${team.id}`}
-        className="rounded-control border border-primary/40 px-3 py-1 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-      >
-        My Team
-      </Link>
-    </li>
+    <Link
+      href={`/team/${team.id}`}
+      className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    >
+      My Team
+    </Link>
   );
 }
