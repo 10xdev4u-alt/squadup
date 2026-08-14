@@ -136,3 +136,9 @@ export function hoursUntil(deadline, now) {
 export function isUrgent(remainingMs) {
   return remainingMs > 0 && remainingMs < 24 * 3600 * 1000;
 }
+
+/** Members dropped between an old and new roster (leader removal, §4B). */
+export function removedMembers(oldMembers, newMembers) {
+  const next = new Set(newMembers || []);
+  return (oldMembers || []).filter((id) => !next.has(id));
+}

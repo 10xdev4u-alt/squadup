@@ -167,3 +167,23 @@ describe("isUrgent", () => {
     expect(isUrgent(0)).toBe(false);
   });
 });
+
+// Team settings (§4B, §8 — leader-only member management).
+import { describe, it, expect } from "vitest";
+import { removedMembers } from "./domain.js";
+
+describe("removedMembers", () => {
+  it("returns the members dropped between the old and new roster", () => {
+    expect(removedMembers(["u-lead", "u-a", "u-b"], ["u-lead", "u-b"])).toEqual(
+      ["u-a"]
+    );
+  });
+
+  it("returns an empty list when the roster is unchanged", () => {
+    expect(removedMembers(["u-lead", "u-a"], ["u-a", "u-lead"])).toEqual([]);
+  });
+
+  it("returns an empty list when members are added", () => {
+    expect(removedMembers(["u-lead"], ["u-lead", "u-new"])).toEqual([]);
+  });
+});
