@@ -50,10 +50,12 @@ export const typeScale = {
 } as const;
 
 export const radius = {
-  card: 12,
-  control: 8,
+  card: 20,
+  control: 12,
 } as const;
 
 export const spacing = [8, 16, 24, 32, 48, 64] as const;
 
 export const hoverGlow = "0 0 20px rgba(108, 92, 231, 0.15)";
+export const softShadow = "0 4px 24px rgba(0, 0, 0, 0.35)";
+export const floatShadow = "0 12px 40px rgba(0, 0, 0, 0.45)";

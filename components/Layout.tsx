@@ -2,13 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import TeamNavLink from "@/components/team-nav-link";
 import AdminNavLink from "@/components/admin-nav-link";
-
-const NAV_LINKS = [
-  { href: "/discover", label: "Discover" },
-  { href: "/matches", label: "Matches" },
-  { href: "/teams", label: "Browse Teams" },
-  { href: "/profile", label: "Profile" },
-];
+import TabBar from "@/components/tab-bar";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
@@ -19,28 +13,27 @@ export default function Layout({ children }: { children: ReactNode }) {
       >
         Skip to content
       </a>
-      <header className="flex items-center justify-between border-b border-border px-6 py-4">
-        <span className="font-display font-semibold">SquadUp</span>
-        <nav aria-label="Main">
-          <ul className="flex items-center gap-4">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <Link
+            href="/"
+            className="font-display text-lg font-semibold tracking-tight transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          >
+            SquadUp
+          </Link>
+          <nav aria-label="Context" className="flex items-center gap-3">
             <TeamNavLink />
             <AdminNavLink />
-          </ul>
-        </nav>
+          </nav>
+        </div>
       </header>
-      <main id="main-content" className="mx-auto max-w-5xl px-6 py-10">
+      <main
+        id="main-content"
+        className="mx-auto max-w-5xl px-6 pb-32 pt-8 sm:pt-10"
+      >
         {children}
       </main>
+      <TabBar />
     </div>
   );
 }
