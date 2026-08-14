@@ -13,7 +13,95 @@ import Layout from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, getApiErrorMessage } from "@/lib/api";
+import { fetchCommitActivity, fetchRepoInfo } from "@/lib/github";
+import type { GithubRepoInfo } from "@/lib/github";
 import type { Resource } from "@/types/squadup";
+
+function GithubCard({ resource }: { resource: Resource }) {
+  const [info, setInfo] = useState<GithubRepoInfo | null>(null);
+  const [activity, setActivity] = useState<number[] | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all([
+      fetchRepoInfo(resource.url),
+      fetchCommitActivity(resource.url),
+    ]).then(([repo, commits]) => {
+      if (cancelled) return;
+      setInfo(repo);
+      setActivity(commits);
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [resource.url]);
+
+  // Graceful degradation: any failure -> plain link card, hub never breaks.
+  if (loaded && !info) {
+    return (
+      <a
+        href={resource.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
+      >
+        Open
+        <span aria-hidden="true">{"\u2197"}</span>
+      </a>
+    );
+  }
+
+  const max = activity ? Math.max(1, ...activity) : 0;
+
+  return (
+    <div className="mt-3">
+      {info && (
+        <div>
+          <p className="text-sm text-muted-foreground">{info.description}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            {info.language && (
+              <Badge variant="secondary">{info.language}</Badge>
+            )}
+            <span aria-label={`${info.stars} stars`}>
+              {"\u2605"} {info.stars}
+            </span>
+            <a
+              href={info.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Open
+              <span aria-hidden="true"> {"\u2197"}</span>
+            </a>
+          </div>
+        </div>
+      )}
+      {activity && activity.length > 0 && (
+        <div
+          role="img"
+          aria-label="Commit activity in the last 14 days"
+          className="mt-3 flex h-10 items-end gap-1"
+        >
+          {activity.map((count, i) => (
+            <span
+              key={i}
+              title={`${count} commit${count === 1 ? "" : "s"}`}
+              className={`w-2 rounded-sm ${
+                count > 0 ? "bg-primary" : "bg-muted"
+              }`}
+              style={{
+                height: `${count > 0 ? Math.max(12, (count / max) * 100) : 4}%`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ResourcesPage() {
   useRequireAuth();
@@ -168,6 +256,8 @@ export default function ResourcesPage() {
                     className="mt-3 h-96 w-full rounded-control border border-border bg-background"
                     loading="lazy"
                   />
+                ) : resource.type === "github" ? (
+                  <GithubCard resource={resource} />
                 ) : (
                   <a
                     href={resource.url}
@@ -176,7 +266,7 @@ export default function ResourcesPage() {
                     className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
                   >
                     Open
-                    <span aria-hidden="true">↗</span>
+                    <span aria-hidden="true">{"\u2197"}</span>
                   </a>
                 )}
               </li>
