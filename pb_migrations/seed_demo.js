@@ -88,16 +88,32 @@ migrate((app) => {
       primaryRole: "Developer",
       skills: ["Hardware/IoT"],
     },
+    {
+      name: "Admin User",
+      collegeId: "ADMIN001",
+      primaryRole: "PM",
+      skills: ["Project Management"],
+      admin: true,
+    },
+    {
+      name: "Mentor User",
+      collegeId: "MENTOR001",
+      primaryRole: "PM",
+      skills: ["Project Management"],
+      mentor: true,
+    },
   ];
   const users = [];
   for (const data of userData) {
     const user = new Record(app.findCollectionByNameOrId("users"));
-    user.set("email", `${data.collegeId.toLowerCase()}@college.edu`);
+    user.set("email", `${data.collegeId.toLowerCase()}@svce.ac.in`);
     user.set("name", data.name);
     user.set("collegeId", data.collegeId);
     user.set("primaryRole", data.primaryRole);
     user.set("skills", data.skills);
     user.set("status", "in_team");
+    if (data.admin) user.set("admin", true);
+    if (data.mentor) user.set("mentor", true);
     user.setRandomPassword();
     app.save(user);
     users.push(user);

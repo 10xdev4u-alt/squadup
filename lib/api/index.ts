@@ -18,7 +18,12 @@ import { createResourcesApi } from "@/lib/api/resources";
 import { createAnalyticsApi } from "@/lib/api/analytics";
 import { createTeamMessagesApi } from "@/lib/api/team-messages";
 
-export function api() {
+let _api: ReturnType<typeof createApi> | null = null;
+
+// Built once, reused forever — getClient() is a stable singleton, so the
+// facade never goes stale across auth changes. Previously every api() call
+// constructed 13 fresh API objects (in useDeck alone, twice per session).
+function createApi() {
   const client = getClient();
   return {
     auth: createAuthApi(client),
@@ -34,6 +39,13 @@ export function api() {
     analytics: createAnalyticsApi(client),
     teamMessages: createTeamMessagesApi(client),
   };
+}
+
+export function api() {
+  if (!_api) {
+    _api = createApi();
+  }
+  return _api;
 }
 
 export type { ApiError, ApiErrorKind } from "@/lib/api/error";
