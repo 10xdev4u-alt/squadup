@@ -4,6 +4,7 @@ import {
   generateInviteCode,
   isCollegeEmail,
   isDuplicateSwipe,
+  isMatchMember,
   orderMatchPair,
   shouldCreateMatch,
 } from "./domain";
@@ -59,5 +60,27 @@ describe("generateInviteCode", () => {
       Array.from({ length: 200 }, () => generateInviteCode())
     );
     expect(codes.size).toBeGreaterThan(150);
+  });
+});
+
+describe("isMatchMember", () => {
+  const match = { userA: "u-a", userB: "u-b" };
+
+  it("accepts the userA participant", () => {
+    expect(isMatchMember(match, "u-a")).toBe(true);
+  });
+
+  it("accepts the userB participant", () => {
+    expect(isMatchMember(match, "u-b")).toBe(true);
+  });
+
+  it("rejects anyone outside the match", () => {
+    expect(isMatchMember(match, "u-c")).toBe(false);
+  });
+
+  it("rejects a missing user id", () => {
+    expect(isMatchMember(match, "")).toBe(false);
+    expect(isMatchMember(match, null)).toBe(false);
+    expect(isMatchMember(match, undefined)).toBe(false);
   });
 });

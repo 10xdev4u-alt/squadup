@@ -10,6 +10,8 @@ const {
   shouldCreateMatch,
   findUserTeam,
   generateInviteCode,
+  isMatchMember,
+
   orderMatchPair,
 } = require("./domain.js");
 
@@ -144,6 +146,7 @@ onRecordBeforeUpdateRequest(async (e) => {
 // single-active-team rule for the creator (§2). The creator leaves the deck
 // immediately (status -> in_team, which the deck's status='solo' filter uses).
 const TEAM_AUTH_MSG = "Authentication required to create a team.";
+const NOT_MATCH_MEMBER_MSG = "You are not a member of this match.";
 
 onRecordBeforeCreateRequest(async (e) => {
   const dao = e.app.dao();
@@ -189,3 +192,23 @@ onRecordBeforeCreateRequest(async (e) => {
   user.set("status", "in_team");
   await dao.save(user);
 }, "teams");
+
+// match_messages: only the two matched users may write, and the sender is
+// always the requester (never client-supplied) — chat privacy (§2 Mode 1).
+// The collection rule scopes reads; this hook scopes writes.
+onRecordBeforeCreateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const match = await dao.findRecordById("matches", rec.get("match"));
+  const senderId = e.request.auth && e.request.auth.id;
+  if (
+    !senderId ||
+    !isMatchMember(
+      { userA: match.get("userA"), userB: match.get("userB") },
+      senderId
+    )
+  ) {
+    throw new Error(NOT_MATCH_MEMBER_MSG);
+  }
+  rec.set("sender", senderId);
+}, "match_messages");

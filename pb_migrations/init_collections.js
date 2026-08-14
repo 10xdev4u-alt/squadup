@@ -164,9 +164,12 @@ migrate(
     const matchMessages = new Collection({
       type: "base",
       name: "match_messages",
-      listRule: "@request.auth.id != null",
-      viewRule: "@request.auth.id != null",
-      createRule: "@request.auth.id != null",
+      listRule:
+        "match.userA = @request.auth.id || match.userB = @request.auth.id",
+      viewRule:
+        "match.userA = @request.auth.id || match.userB = @request.auth.id",
+      createRule:
+        "match.userA = @request.auth.id || match.userB = @request.auth.id",
       fields: [
         {
           type: "relation",

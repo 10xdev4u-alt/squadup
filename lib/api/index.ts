@@ -11,6 +11,7 @@ import { createTicketsApi } from "@/lib/api/tickets";
 import { createAuthApi } from "@/lib/api/auth";
 import { createUsersApi } from "@/lib/api/users";
 import { createRealtimeApi } from "@/lib/api/realtime";
+import { createMatchesApi } from "@/lib/api/matches";
 
 export function api() {
   const client = getClient();
@@ -21,6 +22,7 @@ export function api() {
     swipes: createSwipesApi(client),
     tickets: createTicketsApi(client),
     realtime: createRealtimeApi(client),
+    matches: createMatchesApi(client),
   };
 }
 
@@ -33,6 +35,7 @@ export type { CreateTicketInput } from "@/lib/api/tickets";
 export type { OtpSession, OtpRequest } from "@/lib/api/auth";
 export type { ProfileUpdate } from "@/lib/api/users";
 export type { MatchEvent } from "@/lib/api/realtime";
+export type { MatchCard } from "@/lib/api/matches";
 export {
   getCurrentUser,
   isAuthenticated,
