@@ -84,9 +84,10 @@ export default function OnboardingSkills() {
                   type="button"
                   aria-pressed={selected}
                   disabled={atCap}
+                  aria-describedby={errors.skills ? "skills-error" : undefined}
                   onClick={() => toggleSkill(skill)}
                   className={
-                    "rounded-full border px-3 py-1 text-sm transition-colors disabled:opacity-40 " +
+                    "rounded-full border px-3 py-1 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-40 " +
                     (selected
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-border bg-background text-foreground")
@@ -98,7 +99,9 @@ export default function OnboardingSkills() {
             })}
           </div>
           {errors.skills && (
-            <span className="text-sm text-danger">{errors.skills}</span>
+            <span id="skills-error" className="text-sm text-danger">
+              {errors.skills}
+            </span>
           )}
         </div>
 
@@ -112,6 +115,9 @@ export default function OnboardingSkills() {
                   name="primaryRole"
                   value={role}
                   checked={primaryRole === role}
+                  aria-describedby={
+                    errors.primaryRole ? "primary-role-error" : undefined
+                  }
                   onChange={() => setPrimaryRole(role)}
                 />
                 {role}
@@ -119,7 +125,9 @@ export default function OnboardingSkills() {
             ))}
           </div>
           {errors.primaryRole && (
-            <span className="text-sm text-danger">{errors.primaryRole}</span>
+            <span id="primary-role-error" className="text-sm text-danger">
+              {errors.primaryRole}
+            </span>
           )}
         </fieldset>
 

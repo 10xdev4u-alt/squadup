@@ -56,11 +56,15 @@ export default function Onboarding() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="rounded-control border border-input bg-background px-3 py-2 outline-none focus:border-primary"
+            autoComplete="name"
+            className="rounded-control border border-input bg-background px-3 py-2 outline-none focus-visible:ring-1 focus-visible:ring-ring"
             aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? "name-error" : undefined}
           />
           {errors.name && (
-            <span className="text-sm text-danger">{errors.name}</span>
+            <span id="name-error" className="text-sm text-danger">
+              {errors.name}
+            </span>
           )}
         </label>
 
@@ -70,11 +74,14 @@ export default function Onboarding() {
             value={bio}
             onChange={(e) => setBio(e.target.value)}
             rows={3}
-            className="rounded-control border border-input bg-background px-3 py-2 outline-none focus:border-primary"
+            className="rounded-control border border-input bg-background px-3 py-2 outline-none focus-visible:ring-1 focus-visible:ring-ring"
             aria-invalid={!!errors.bio}
+            aria-describedby={errors.bio ? "bio-error" : undefined}
           />
           {errors.bio && (
-            <span className="text-sm text-danger">{errors.bio}</span>
+            <span id="bio-error" className="text-sm text-danger">
+              {errors.bio}
+            </span>
           )}
         </label>
 
@@ -85,11 +92,15 @@ export default function Onboarding() {
             value={githubUrl}
             onChange={(e) => setGithubUrl(e.target.value)}
             placeholder="https://github.com/you"
-            className="rounded-control border border-input bg-background px-3 py-2 outline-none focus:border-primary"
+            autoComplete="url"
+            className="rounded-control border border-input bg-background px-3 py-2 outline-none focus-visible:ring-1 focus-visible:ring-ring"
             aria-invalid={!!errors.githubUrl}
+            aria-describedby={errors.githubUrl ? "github-error" : undefined}
           />
           {errors.githubUrl && (
-            <span className="text-sm text-danger">{errors.githubUrl}</span>
+            <span id="github-error" className="text-sm text-danger">
+              {errors.githubUrl}
+            </span>
           )}
         </label>
 

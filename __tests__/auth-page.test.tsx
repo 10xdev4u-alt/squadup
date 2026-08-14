@@ -43,6 +43,27 @@ describe("auth page", () => {
     verifyOtpMock.mockReset();
   });
 
+  it("links the error message to the email input for screen readers", async () => {
+    requestOtpMock.mockRejectedValue({
+      kind: "forbidden",
+      status: 403,
+      message: "You do not have permission to do that.",
+      cause: null,
+    });
+    render(<AuthPage />);
+
+    await submitEmail("jane@college.edu");
+
+    const error = await screen.findByText(
+      /You do not have permission to do that/i
+    );
+    const input = screen.getByLabelText(/college email/i);
+    expect(input).toHaveAttribute(
+      "aria-describedby",
+      expect.stringContaining(error.id)
+    );
+  });
+
   it("requests an OTP and moves to the code step", async () => {
     requestOtpMock.mockResolvedValue({ otpId: "otp-1" });
     render(<AuthPage />);

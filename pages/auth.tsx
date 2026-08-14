@@ -73,12 +73,19 @@ export default function AuthPage() {
               <input
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-control border border-input bg-background px-3 py-2 outline-none focus:border-primary"
+                aria-invalid={!!error}
+                aria-describedby={error ? "auth-error" : undefined}
+                className="rounded-control border border-input bg-background px-3 py-2 outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </label>
-            {error && <p className="text-sm text-danger">{error}</p>}
+            {error && (
+              <p id="auth-error" className="text-sm text-danger">
+                {error}
+              </p>
+            )}
             <button
               type="submit"
               disabled={busy}
@@ -103,13 +110,20 @@ export default function AuthPage() {
               <input
                 type="text"
                 inputMode="numeric"
+                autoComplete="one-time-code"
                 required
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                className="rounded-control border border-input bg-background px-3 py-2 outline-none focus:border-primary"
+                aria-invalid={!!error}
+                aria-describedby={error ? "auth-error" : undefined}
+                className="rounded-control border border-input bg-background px-3 py-2 outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </label>
-            {error && <p className="text-sm text-danger">{error}</p>}
+            {error && (
+              <p id="auth-error" className="text-sm text-danger">
+                {error}
+              </p>
+            )}
             <button
               type="submit"
               disabled={busy}
