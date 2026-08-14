@@ -84,6 +84,8 @@ export interface User {
   lookingFor: string;
   /** Mentor flag (I24 migration) — gates mentor-only UI like ticket status. */
   mentor: boolean;
+  /** Admin flag (I24-M5) — PB-dashboard-seeded, gates the §4E admin area. */
+  admin: boolean;
 }
 
 export interface Swipe {

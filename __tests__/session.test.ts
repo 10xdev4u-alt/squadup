@@ -23,6 +23,7 @@ const authRecord = {
   status: "solo",
   lookingFor: "",
   mentor: false,
+  admin: false,
 };
 
 describe("session helpers", () => {
@@ -44,6 +45,7 @@ describe("session helpers", () => {
       status: "solo",
       lookingFor: "",
       mentor: false,
+      admin: false,
     });
   });
 

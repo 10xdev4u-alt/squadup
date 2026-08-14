@@ -17,6 +17,7 @@ function makeUser(
     status: "solo",
     lookingFor: "",
     mentor: false,
+    admin: false,
     ...overrides,
   };
 }

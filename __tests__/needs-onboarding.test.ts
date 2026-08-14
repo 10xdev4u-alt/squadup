@@ -15,6 +15,7 @@ function makeUser(overrides: Partial<User> = {}): User {
     status: "solo",
     lookingFor: "",
     mentor: false,
+    admin: false,
     ...overrides,
   };
 }

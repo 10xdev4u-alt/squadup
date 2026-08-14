@@ -197,3 +197,19 @@ export function canViewTicket(user, teamMembers, userId) {
 export function canManageTicket(user) {
   return isMentor(user);
 }
+
+// Admin (§4E — M5). `admin` is a users bool flag seeded via the PB dashboard.
+export function isAdmin(user) {
+  return Boolean(user && user.admin === true);
+}
+
+/**
+ * Privilege flags (admin/mentor) are server-only — a plain user can never set
+ * them on themselves. Only a PB superuser may touch them (closes the I24 hole
+ * where `mentor` was self-claimable via the default self-update rule).
+ */
+export function canModifyPrivilege(requesterIsSuperuser, changedFields) {
+  if (requesterIsSuperuser) return true;
+  const privileged = ["admin", "mentor"];
+  return !(changedFields || []).some((f) => privileged.includes(f));
+}
