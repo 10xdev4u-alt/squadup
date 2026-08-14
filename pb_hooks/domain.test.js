@@ -295,3 +295,30 @@ describe("canManageTicket", () => {
     expect(canManageTicket({ mentor: false })).toBe(false);
   });
 });
+
+// Admin (§4E — M5). `admin` is a users bool flag seeded via the PB dashboard.
+// Privilege flags (admin/mentor) are server-only: a plain user can never set
+// them on themselves — that closes the I24 hole where `mentor` was self-claimable.
+import { canModifyPrivilege } from "./domain.js";
+
+describe("canModifyPrivilege", () => {
+  it("blocks a plain user from setting admin", () => {
+    expect(canModifyPrivilege(false, ["admin"])).toBe(false);
+  });
+
+  it("blocks a plain user from setting mentor", () => {
+    expect(canModifyPrivilege(false, ["mentor"])).toBe(false);
+  });
+
+  it("allows a superuser to set either flag", () => {
+    expect(canModifyPrivilege(true, ["admin", "mentor"])).toBe(true);
+  });
+
+  it("allows a plain user to change non-privilege fields", () => {
+    expect(canModifyPrivilege(false, ["bio", "name"])).toBe(true);
+  });
+
+  it("allows empty changes", () => {
+    expect(canModifyPrivilege(false, [])).toBe(true);
+  });
+});

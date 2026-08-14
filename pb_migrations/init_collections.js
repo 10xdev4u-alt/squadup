@@ -49,6 +49,8 @@ migrate(
         { type: "text", name: "lookingFor", max: 200 },
         // I24: §4D mentor identity — schema gap closed (was no mentor flag).
         { type: "bool", name: "mentor" },
+        // I24(M5): §4E admin identity — PB-dashboard-seeded, never self-claimable.
+        { type: "bool", name: "admin" },
       ],
       passwordAuth: { enabled: true },
       otp: { enabled: true },

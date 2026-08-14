@@ -21,6 +21,7 @@ const {
   isMentor,
   canViewTicket,
   canManageTicket,
+  canModifyPrivilege,
 
   orderMatchPair,
 } = require("./domain.js");
@@ -45,6 +46,31 @@ onRecordBeforeCreateRequest((e) => {
   const email = e.record.get("email");
   if (!isCollegeEmail(email, COLLEGE_DOMAINS)) {
     throw new Error(COLLEGE_EMAIL_MSG);
+  }
+  // Privilege flags are PB-dashboard-seeded — never settable at registration.
+  const requester = e.request && e.request.auth;
+  const isSuperuser = Boolean(requester && requester.isSuperuser());
+  if (!isSuperuser) {
+    e.record.set("admin", false);
+    e.record.set("mentor", false);
+  }
+}, "users");
+
+// users: privilege flags (admin/mentor) are server-only — a plain user can
+// never change them on themselves (closes the I24 hole where `mentor` was
+// self-claimable via the default self-update rule). PB superusers may.
+const PRIVILEGE_MSG = "Privilege fields (admin/mentor) are server-managed.";
+
+onRecordBeforeUpdateRequest((e) => {
+  const original = e.record.getOriginal(); // PB 0.23+ — DB state before save
+  const previous = original || e.record;
+  const changed = ["admin", "mentor"].filter(
+    (f) => e.record.get(f) !== previous.get(f)
+  );
+  const requester = e.request && e.request.auth;
+  const isSuperuser = Boolean(requester && requester.isSuperuser());
+  if (!canModifyPrivilege(isSuperuser, changed)) {
+    throw new Error(PRIVILEGE_MSG);
   }
 }, "users");
 
