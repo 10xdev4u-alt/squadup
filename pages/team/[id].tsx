@@ -89,13 +89,21 @@ export default function TeamDashboardPage() {
             )}
           </div>
 
-          <aside className="rounded-card border border-border bg-card p-6 text-center">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Deadline
-            </p>
-            <div className="mt-2">
-              <Countdown deadline={team.deadline} />
+          <aside className="flex flex-col items-stretch gap-3">
+            <div className="rounded-card border border-border bg-card p-6 text-center">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Deadline
+              </p>
+              <div className="mt-2">
+                <Countdown deadline={team.deadline} />
+              </div>
             </div>
+            <Link
+              href={`/team/${team.id}/settings`}
+              className="rounded-control border border-border bg-card px-4 py-2 text-center text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            >
+              Team Settings
+            </Link>
           </aside>
         </header>
 
@@ -122,6 +130,22 @@ export default function TeamDashboardPage() {
             </p>
           </Link>
         </nav>
+
+        {team.chatLink && (
+          <section aria-labelledby="chat-heading" className="mt-10">
+            <h2 id="chat-heading" className="text-lg font-semibold">
+              Team Chat
+            </h2>
+            <a
+              href={team.chatLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Open Team Chat
+            </a>
+          </section>
+        )}
 
         <section aria-labelledby="members-heading" className="mt-10">
           <h2 id="members-heading" className="text-lg font-semibold">

@@ -51,6 +51,11 @@ export interface TeamDetail {
   members: { id: string; name: string }[];
   /** ISO timestamp of the countdown target (§4B, §9). */
   deadline: string;
+  /**
+   * §8 privacy (I1 flag): only exposed to members/leader. Non-members see
+   * null — the raw record keeps chatLink, but the DTO drops it for them.
+   */
+  chatLink: string | null;
 }
 
 function toTeamCard(record: Record<string, unknown>): TeamCard {
@@ -76,21 +81,30 @@ function toPerson(record: unknown): { id: string; name: string } {
   return { id: String(r.id ?? ""), name: String(r.name ?? "Unknown") };
 }
 
-function toTeamDetail(record: Record<string, unknown>): TeamDetail {
+function toTeamDetail(
+  record: Record<string, unknown>,
+  meId: string
+): TeamDetail {
   const expand = (record.expand ?? {}) as Record<string, unknown>;
   const statement = expand.problemStatement as
     Record<string, unknown> | undefined;
+  const leader = toPerson(expand.leader);
+  const members = Array.isArray(expand.members)
+    ? (expand.members as unknown[]).map(toPerson)
+    : [];
+  const isMember =
+    meId !== "" && (leader.id === meId || members.some((m) => m.id === meId));
   return {
     id: String(record.id),
     name: String(record.name),
     status: record.status as TeamStatus,
     rolesNeeded: (record.rolesNeeded ?? []) as PrimaryRole[],
     problemStatement: statement ? toProblemStatement(statement) : null,
-    leader: toPerson(expand.leader),
-    members: Array.isArray(expand.members)
-      ? (expand.members as unknown[]).map(toPerson)
-      : [],
+    leader,
+    members,
     deadline: String(record.deadline ?? ""),
+    // §8 privacy: the chat link is members-only (closes the I1 flag).
+    chatLink: isMember && record.chatLink ? String(record.chatLink) : null,
   };
 }
 
@@ -137,7 +151,8 @@ export function createTeamsApi(client: PbClient) {
       const record = await collection().getOne(id, {
         expand: "leader,members,problemStatement",
       });
-      return toTeamDetail(record);
+      const meId = client.authStore.record?.id as string | undefined;
+      return toTeamDetail(record, meId ?? "");
     } catch (err) {
       throw normalizeError(err);
     }
@@ -164,11 +179,39 @@ export function createTeamsApi(client: PbClient) {
     }
   }
 
+  /**
+   * Leader-only settings (the updateRule enforces who). Sends only
+   * client-owned fields — name/leader/inviteCode never leave the client.
+   */
+  async function updateTeamSettings(
+    id: string,
+    fields: Partial<
+      Pick<TeamDetail, "chatLink" | "status" | "deadline"> & {
+        /** Raw member ids — the API contract, not the expanded DTO shape. */
+        members?: string[];
+      }
+    >
+  ): Promise<TeamDetail> {
+    try {
+      const body: Record<string, unknown> = {};
+      if (fields.chatLink !== undefined) body.chatLink = fields.chatLink;
+      if (fields.status !== undefined) body.status = fields.status;
+      if (fields.deadline !== undefined) body.deadline = fields.deadline;
+      if (fields.members !== undefined) body.members = fields.members;
+      const record = await collection().update(id, body);
+      const meId = client.authStore.record?.id as string | undefined;
+      return toTeamDetail(record, meId ?? "");
+    } catch (err) {
+      throw normalizeError(err);
+    }
+  }
+
   return {
     fetchTeamCard,
     fetchTeamCards,
     fetchTeamDetail,
     createTeam,
     fetchProblemStatements,
+    updateTeamSettings,
   };
 }

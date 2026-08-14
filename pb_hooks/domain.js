@@ -137,6 +137,12 @@ export function isUrgent(remainingMs) {
   return remainingMs > 0 && remainingMs < 24 * 3600 * 1000;
 }
 
+/** Members dropped between an old and new roster (leader removal, §4B). */
+export function removedMembers(oldMembers, newMembers) {
+  const next = new Set(newMembers || []);
+  return (oldMembers || []).filter((id) => !next.has(id));
+}
+
 /** True when the user is a member of the team (workspace access, §4B). */
 export function isTeamMember(team, userId) {
   if (!team || !userId) return false;

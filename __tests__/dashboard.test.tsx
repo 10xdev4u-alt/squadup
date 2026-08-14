@@ -43,6 +43,7 @@ function makeDetail(overrides: Partial<TeamDetail> = {}): TeamDetail {
       { id: "u-dev", name: "Priya Sharma" },
     ],
     deadline: "2026-08-16T12:00:00.000Z",
+    chatLink: null,
     ...overrides,
   };
 }
@@ -95,5 +96,39 @@ describe("team dashboard — /team/[id]", () => {
     expect(
       await screen.findByText(/couldn.t load this team/i)
     ).toBeInTheDocument();
+  });
+});
+
+describe("team dashboard — chat link + settings entry (I21)", () => {
+  it("links to the settings screen for the workspace", async () => {
+    fetchTeamDetailMock.mockResolvedValue(makeDetail());
+
+    render(<TeamDashboardPage />);
+
+    const settings = await screen.findByRole("link", { name: /settings/i });
+    expect(settings).toHaveAttribute("href", "/team/t1/settings");
+  });
+
+  it("shows the team chat link to members", async () => {
+    fetchTeamDetailMock.mockResolvedValue(
+      makeDetail({ chatLink: "https://chat.example/invite" })
+    );
+
+    render(<TeamDashboardPage />);
+
+    expect(
+      await screen.findByRole("link", { name: /open team chat/i })
+    ).toHaveAttribute("href", "https://chat.example/invite");
+  });
+
+  it("omits the chat link when the team has none", async () => {
+    fetchTeamDetailMock.mockResolvedValue(makeDetail({ chatLink: null }));
+
+    render(<TeamDashboardPage />);
+
+    await screen.findByRole("heading", { name: "Navigators" });
+    expect(
+      screen.queryByRole("link", { name: /open team chat/i })
+    ).not.toBeInTheDocument();
   });
 });

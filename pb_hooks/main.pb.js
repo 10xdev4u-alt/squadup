@@ -16,6 +16,7 @@ const {
   isTeamMember,
   TEAM_DEADLINE_HOURS,
   deadlineFor,
+  removedMembers,
 
   orderMatchPair,
 } = require("./domain.js");
@@ -335,3 +336,29 @@ onRecordBeforeUpdateRequest(async (e) => {
     await dao.save(user);
   }
 }, "join_requests");
+
+// teams: leader-only member management (§4B, §8). The updateRule already
+// scopes writes to the leader; this hook makes removal side-effects safe:
+// dropped members flip back to `solo` (re-entering the discover deck, §2),
+// and the leader can never be removed from their own team.
+const CANNOT_REMOVE_LEADER_MSG = "The leader cannot be removed from the team.";
+
+onRecordBeforeUpdateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const original = rec.original();
+  const oldMembers = (original && original.get("members")) || [];
+  const newMembers = rec.get("members") || [];
+  const removed = removedMembers(oldMembers, newMembers);
+  if (removed.length === 0) return;
+
+  const leaderId = original ? original.get("leader") : rec.get("leader");
+  if (removed.includes(leaderId)) {
+    throw new Error(CANNOT_REMOVE_LEADER_MSG);
+  }
+  for (const userId of removed) {
+    const user = await dao.findRecordById("users", userId);
+    user.set("status", "solo");
+    await dao.save(user);
+  }
+}, "teams");
