@@ -41,7 +41,21 @@ export default function Matches() {
 
       <div className="mt-6">
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading matches...</p>
+          <div className="animate-pulse space-y-2 rounded-card border border-border bg-card p-4">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                aria-hidden="true"
+                className="flex items-center gap-4 px-3 py-4"
+              >
+                <div className="h-10 w-10 rounded-full bg-elevated" />
+                <div className="flex-1">
+                  <div className="h-3 w-1/3 rounded bg-elevated" />
+                  <div className="mt-2 h-2.5 w-1/4 rounded bg-elevated" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : cards.length === 0 ? (
           <EmptyState
             title="No matches yet"

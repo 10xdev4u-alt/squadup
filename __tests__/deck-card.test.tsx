@@ -78,4 +78,20 @@ describe("DeckCard", () => {
     );
     expect(screen.getByText("PS")).toBeInTheDocument();
   });
+
+  it("renders the match score as a percentage ring", () => {
+    render(
+      <DeckCard candidate={makeCandidate({ score: 42 })} onSwipe={() => {}} />
+    );
+    expect(screen.getByText("42%")).toBeInTheDocument();
+    expect(screen.getByLabelText(/match score/i)).toBeInTheDocument();
+  });
+
+  it("uses icon buttons for skip and interested", () => {
+    render(<DeckCard candidate={makeCandidate()} onSwipe={() => {}} />);
+    expect(screen.getByRole("button", { name: /skip/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /interested/i })
+    ).toBeInTheDocument();
+  });
 });
