@@ -1,36 +1,36 @@
 export const palette = {
-  background: "#0A0A0F",
-  surface: "#14141C",
-  elevated: "#1C1C27",
-  border: "#2A2A38",
-  primary: "#6C5CE7",
-  secondary: "#00E5FF",
-  success: "#22C55E",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-  textPrimary: "#F5F5F7",
-  textSecondary: "#9CA3AF",
+  background: "#16161A",
+  surface: "#1D1D22",
+  elevated: "#24242B",
+  border: "#2E2E37",
+  primary: "#3ECF8E",
+  secondary: "#4B4B56",
+  success: "#3ECF8E",
+  warning: "#D9822B",
+  danger: "#F05252",
+  textPrimary: "#E7E7EA",
+  textSecondary: "#9A9AA3",
 } as const;
 
 export const paletteLabels = {
-  background: "Deep Space",
-  surface: "Slate Panel",
+  background: "Graphite Base",
+  surface: "Panel",
   elevated: "Raised Panel",
-  border: "Ghost Line",
-  primary: "Electric Indigo",
-  secondary: "Cyber Cyan",
-  success: "Signal Green",
-  warning: "Amber Alert",
-  danger: "Critical Red",
-  textPrimary: "Off White",
-  textSecondary: "Muted Grey",
+  border: "Hairline",
+  primary: "Accent Green",
+  secondary: "Neutral Button",
+  success: "Accent Green",
+  warning: "Amber",
+  danger: "Red",
+  textPrimary: "Primary Text",
+  textSecondary: "Muted Text",
 } as const;
 
-export const ctaGradient = "linear-gradient(135deg, #6C5CE7 0%, #00E5FF 100%)";
+export const ctaGradient = "linear-gradient(180deg, #3ECF8E 0%, #2EB67E 100%)";
 
 export const swipe = {
-  like: "#22C55E",
-  skip: "#EF4444",
+  like: "#3ECF8E",
+  skip: "#F05252",
   matchGradient: ctaGradient,
 } as const;
 
@@ -56,4 +56,4 @@ export const radius = {
 
 export const spacing = [8, 16, 24, 32, 48, 64] as const;
 
-export const hoverGlow = "0 0 20px rgba(108, 92, 231, 0.15)";
+export const hoverGlow = "0 1px 2px rgba(0, 0, 0, 0.35)";

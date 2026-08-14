@@ -4,25 +4,25 @@ import { ctaGradient, palette, swipe } from "@/lib/tokens";
 describe("design tokens", () => {
   it("exposes the full §6 palette with exact hex values", () => {
     expect(palette).toEqual({
-      background: "#0A0A0F",
-      surface: "#14141C",
-      elevated: "#1C1C27",
-      border: "#2A2A38",
-      primary: "#6C5CE7",
-      secondary: "#00E5FF",
-      success: "#22C55E",
-      warning: "#F59E0B",
-      danger: "#EF4444",
-      textPrimary: "#F5F5F7",
-      textSecondary: "#9CA3AF",
+      background: "#16161A",
+      surface: "#1D1D22",
+      elevated: "#24242B",
+      border: "#2E2E37",
+      primary: "#3ECF8E",
+      secondary: "#4B4B56",
+      success: "#3ECF8E",
+      warning: "#D9822B",
+      danger: "#F05252",
+      textPrimary: "#E7E7EA",
+      textSecondary: "#9A9AA3",
     });
   });
 
   it("defines the §6 CTA gradient and swipe colors", () => {
     expect(ctaGradient).toBe(
-      "linear-gradient(135deg, #6C5CE7 0%, #00E5FF 100%)"
+      "linear-gradient(180deg, #3ECF8E 0%, #2EB67E 100%)"
     );
-    expect(swipe.like).toBe("#22C55E");
-    expect(swipe.skip).toBe("#EF4444");
+    expect(swipe.like).toBe("#3ECF8E");
+    expect(swipe.skip).toBe("#F05252");
   });
 });
