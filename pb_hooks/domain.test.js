@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   findUserTeam,
   generateInviteCode,
+  hasPendingRequest,
   isCollegeEmail,
+  isSelfJoin,
   isDuplicateSwipe,
   isMatchMember,
   orderMatchPair,
@@ -82,5 +84,34 @@ describe("isMatchMember", () => {
     expect(isMatchMember(match, "")).toBe(false);
     expect(isMatchMember(match, null)).toBe(false);
     expect(isMatchMember(match, undefined)).toBe(false);
+  });
+});
+
+describe("hasPendingRequest", () => {
+  const requests = [
+    { team: "t1", applicant: "u-a", status: "pending" },
+    { team: "t2", applicant: "u-a", status: "rejected" },
+  ];
+
+  it("flags an existing pending request for the same team", () => {
+    expect(hasPendingRequest(requests, "t1", "u-a")).toBe(true);
+  });
+
+  it("ignores non-pending requests", () => {
+    expect(hasPendingRequest(requests, "t2", "u-a")).toBe(false);
+  });
+
+  it("allows a fresh team + applicant pair", () => {
+    expect(hasPendingRequest(requests, "t3", "u-b")).toBe(false);
+  });
+});
+
+describe("isSelfJoin", () => {
+  it("rejects a request from the team leader", () => {
+    expect(isSelfJoin({ leader: "u-lead" }, "u-lead")).toBe(true);
+  });
+
+  it("allows a request from a non-leader", () => {
+    expect(isSelfJoin({ leader: "u-lead" }, "u-other")).toBe(false);
   });
 });

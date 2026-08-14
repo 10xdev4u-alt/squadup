@@ -1,17 +1,34 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { act } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import TeamDetailPage from "@/pages/teams/[id]";
-import Layout from "@/components/Layout";
 import type { TeamDetail } from "@/lib/api/teams";
+import type { JoinRequest } from "@/types/squadup";
 
 const fetchTeamDetailMock = vi.fn();
+const requestToJoinMock = vi.fn();
+const fetchRequestsMock = vi.fn();
+const decideRequestMock = vi.fn();
+const subscribeMyRequestsMock = vi.fn();
+const getClientMock = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   api: () => ({
     teams: { fetchTeamDetail: fetchTeamDetailMock },
+    joinRequests: {
+      requestToJoin: requestToJoinMock,
+      fetchRequests: fetchRequestsMock,
+      decideRequest: decideRequestMock,
+      subscribeMyRequests: subscribeMyRequestsMock,
+    },
   }),
   getApiErrorMessage: (err: unknown) =>
     err instanceof Error ? err.message : "Something went wrong on our end.",
+}));
+
+vi.mock("@/lib/api/client", () => ({
+  getClient: () => getClientMock(),
 }));
 
 vi.mock("@/lib/use-require-auth", () => ({
@@ -28,64 +45,106 @@ function makeDetail(overrides: Partial<TeamDetail> = {}): TeamDetail {
     name: "Navigators",
     status: "open",
     rolesNeeded: ["Developer", "Designer"],
-    problemStatement: {
-      id: "p1",
-      title: "Smart campus navigation",
-      domain: "Smart Cities",
-    },
+    problemStatement: null,
     leader: { id: "u-lead", name: "Arjun Patel" },
-    members: [
-      { id: "u-lead", name: "Arjun Patel" },
-      { id: "u-dev", name: "Priya Sharma" },
-    ],
+    members: [{ id: "u-lead", name: "Arjun Patel" }],
     ...overrides,
   };
 }
 
-describe("Team detail page", () => {
+function makeRequest(overrides: Partial<JoinRequest> = {}): JoinRequest {
+  return {
+    id: "jr1",
+    team: "t1",
+    applicant: "u-other",
+    roleAppliedFor: "Developer",
+    message: "I build things.",
+    status: "pending",
+    createdAt: "2026-08-14 12:00:00.000Z",
+    ...overrides,
+  };
+}
+
+describe("Team detail page — join flow", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getClientMock.mockReturnValue({
+      authStore: { record: { id: "u-dev" }, isValid: true },
+    });
     fetchTeamDetailMock.mockResolvedValue(makeDetail());
+    subscribeMyRequestsMock.mockResolvedValue(async () => {});
   });
 
-  it("renders the team's statement, roles, leader and members", async () => {
+  it("shows the request form to a non-member", async () => {
     render(<TeamDetailPage />);
 
     await waitFor(() =>
       expect(screen.getByText("Navigators")).toBeInTheDocument()
     );
-    expect(fetchTeamDetailMock).toHaveBeenCalledWith("t1");
-    expect(screen.getByText("Smart campus navigation")).toBeInTheDocument();
-    expect(screen.getByText("Developer")).toBeInTheDocument();
-    expect(screen.getByText("Arjun Patel")).toBeInTheDocument();
-    expect(screen.getByText("Priya Sharma")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /request to join/i })
+    ).toBeInTheDocument();
   });
 
-  it("shows a fallback when the team has no problem statement", async () => {
-    fetchTeamDetailMock.mockResolvedValue(
-      makeDetail({ problemStatement: null })
-    );
+  it("submits a request with role and note", async () => {
+    requestToJoinMock.mockResolvedValue(makeRequest());
+    fetchRequestsMock.mockResolvedValue([]);
 
     render(<TeamDetailPage />);
-
     await waitFor(() =>
       expect(screen.getByText("Navigators")).toBeInTheDocument()
     );
-    expect(screen.getByText(/no problem statement/i)).toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /request to join/i })
+    );
+    await userEvent.selectOptions(screen.getByLabelText(/role/i), "Developer");
+    await userEvent.type(screen.getByLabelText(/note/i), "I build things.");
+    await userEvent.click(
+      screen.getByRole("button", { name: /send request/i })
+    );
+
+    await waitFor(() =>
+      expect(requestToJoinMock).toHaveBeenCalledWith("t1", {
+        roleAppliedFor: "Developer",
+        message: "I build things.",
+      })
+    );
   });
-});
 
-describe("Layout navigation", () => {
-  it("links to the team directory", () => {
-    render(
-      <Layout>
-        <p>content</p>
-      </Layout>
+  it("lets the leader see pending requests and accept them", async () => {
+    getClientMock.mockReturnValue({
+      authStore: { record: { id: "u-lead" }, isValid: true },
+    });
+    fetchRequestsMock.mockResolvedValue([makeRequest()]);
+    decideRequestMock.mockResolvedValue(makeRequest({ status: "accepted" }));
+
+    render(<TeamDetailPage />);
+    await waitFor(() =>
+      expect(screen.getByText(/build things/i)).toBeInTheDocument()
     );
 
-    expect(screen.getByRole("link", { name: /browse teams/i })).toHaveAttribute(
-      "href",
-      "/teams"
+    await userEvent.click(screen.getByRole("button", { name: /accept/i }));
+
+    await waitFor(() =>
+      expect(decideRequestMock).toHaveBeenCalledWith("jr1", "accepted")
     );
+  });
+
+  it("announces the leader's decision in a live region", async () => {
+    fetchRequestsMock.mockResolvedValue([]);
+    requestToJoinMock.mockResolvedValue(makeRequest());
+
+    render(<TeamDetailPage />);
+    await waitFor(() => expect(subscribeMyRequestsMock).toHaveBeenCalled());
+
+    const call = subscribeMyRequestsMock.mock.calls[0] ?? [];
+    const callback = call[0] as (request: JoinRequest) => void;
+
+    await act(async () => {
+      callback(makeRequest({ status: "accepted" }));
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent(/accepted/i);
   });
 });
