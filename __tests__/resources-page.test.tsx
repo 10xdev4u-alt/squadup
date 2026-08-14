@@ -81,9 +81,9 @@ describe("resource hub — /team/[id]/resources", () => {
       pageResult([
         makeResource({
           id: "r2",
-          type: "github",
-          title: "SquadUp repo",
-          url: "https://github.com/10xdev4u-alt/squadup",
+          type: "canva",
+          title: "Pitch deck",
+          url: "https://www.canva.com/design/DAG/",
           embeddable: false,
         }),
       ])
@@ -91,13 +91,9 @@ describe("resource hub — /team/[id]/resources", () => {
 
     render(<ResourcesPage />);
 
-    expect(await screen.findByText("SquadUp repo")).toBeInTheDocument();
-    expect(screen.queryByTitle("SquadUp repo")).not.toBeInTheDocument();
+    expect(await screen.findByText("Pitch deck")).toBeInTheDocument();
     const open = screen.getByRole("link", { name: /open/i });
-    expect(open).toHaveAttribute(
-      "href",
-      "https://github.com/10xdev4u-alt/squadup"
-    );
+    expect(open).toHaveAttribute("href", "https://www.canva.com/design/DAG/");
   });
 
   it("adds a resource from the form", async () => {
@@ -143,5 +139,94 @@ describe("resource hub — /team/[id]/resources", () => {
     render(<ResourcesPage />);
 
     expect(await screen.findByText(/no resources yet/i)).toBeInTheDocument();
+  });
+});
+
+describe("resource hub — github presence (I23)", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+    sessionStorage.clear();
+  });
+
+  it("enriches a github link card with repo metadata and a commit sparkline", async () => {
+    fetchResourcesMock.mockResolvedValue(
+      pageResult([
+        makeResource({
+          id: "r3",
+          type: "github",
+          title: "SquadUp repo",
+          url: "https://github.com/10xdev4u-alt/squadup",
+          embeddable: false,
+        }),
+      ])
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.includes("/commits")) {
+          return {
+            ok: true,
+            json: async () => [
+              { commit: { author: { date: "2026-08-14T10:00:00Z" } } },
+            ],
+          };
+        }
+        if (url.includes("/repos/")) {
+          return {
+            ok: true,
+            json: async () => ({
+              description: "SquadUp — find your squad",
+              stargazers_count: 12,
+              language: "TypeScript",
+              html_url: "https://github.com/10xdev4u-alt/squadup",
+            }),
+          };
+        }
+        return { ok: false, json: async () => ({}) };
+      })
+    );
+
+    render(<ResourcesPage />);
+
+    await screen.findByText("SquadUp repo");
+    expect(
+      await screen.findByText(/SquadUp — find your squad/)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/12/)).toBeInTheDocument();
+    expect(screen.getByText("TypeScript")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: /commit activity/i })
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to a plain link card when the API fails", async () => {
+    fetchResourcesMock.mockResolvedValue(
+      pageResult([
+        makeResource({
+          id: "r4",
+          type: "github",
+          title: "Private repo",
+          url: "https://github.com/acme/secret",
+          embeddable: false,
+        }),
+      ])
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: false, status: 403, json: async () => ({}) }))
+    );
+
+    render(<ResourcesPage />);
+
+    await screen.findByText("Private repo");
+    // plain link card survives — hub never breaks on rate limits
+    expect(screen.getByRole("link", { name: /open/i })).toHaveAttribute(
+      "href",
+      "https://github.com/acme/secret"
+    );
+    expect(
+      screen.queryByRole("img", { name: /commit activity/i })
+    ).not.toBeInTheDocument();
   });
 });
