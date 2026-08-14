@@ -49,6 +49,8 @@ export interface TeamDetail {
   problemStatement: ProblemStatement | null;
   leader: { id: string; name: string };
   members: { id: string; name: string }[];
+  /** ISO timestamp of the countdown target (§4B, §9). */
+  deadline: string;
 }
 
 function toTeamCard(record: Record<string, unknown>): TeamCard {
@@ -88,6 +90,7 @@ function toTeamDetail(record: Record<string, unknown>): TeamDetail {
     members: Array.isArray(expand.members)
       ? (expand.members as unknown[]).map(toPerson)
       : [],
+    deadline: String(record.deadline ?? ""),
   };
 }
 
