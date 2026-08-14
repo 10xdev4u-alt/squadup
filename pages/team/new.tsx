@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
+import PageHeader from "@/components/page-header";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { PRIMARY_ROLES, type PrimaryRole } from "@/types/squadup";
@@ -72,11 +73,10 @@ export default function FormTeam() {
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold">Form a Team</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        A team unlocks the workspace — your partner joins as a member and both
-        of you leave the discover deck.
-      </p>
+      <PageHeader
+        title="Form a Team"
+        description="A team unlocks the workspace — your partner joins as a member and both of you leave the discover deck."
+      />
 
       {apiError && (
         <p

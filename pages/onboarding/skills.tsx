@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Layout from "@/components/Layout";
+import PageHeader from "@/components/page-header";
 import { api, getApiErrorMessage, getCurrentUser } from "@/lib/api";
 import { getClient } from "@/lib/api/client";
 import { PRIMARY_ROLES, SKILLS, type Skill } from "@/types/squadup";
@@ -63,10 +64,10 @@ export default function OnboardingSkills() {
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold">Pick your skills</h1>
-      <p className="mt-2 text-muted-foreground">
-        Step 2 of 2 — choose up to {MAX_SKILLS} skills and your primary role.
-      </p>
+      <PageHeader
+        title="Pick your skills"
+        description={`Step 2 of 2 — choose up to ${MAX_SKILLS} skills and your primary role.`}
+      />
 
       <form
         onSubmit={handleSubmit}
