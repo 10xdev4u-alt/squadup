@@ -16,6 +16,8 @@ vi.mock("@/lib/api", () => ({
       sendMessage: vi.fn(),
       subscribeMessages: subscribeTeamMessagesMock,
     },
+    tickets: { fetchTickets: () => Promise.resolve({ totalItems: 3 }) },
+    resources: { fetchResources: () => Promise.resolve({ totalItems: 5 }) },
   }),
   getApiErrorMessage: (err: unknown) =>
     err instanceof Error ? err.message : "Something went wrong on our end.",

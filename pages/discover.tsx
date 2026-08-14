@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import PageHeader from "@/components/page-header";
 import EmptyState from "@/components/empty-state";
 import DeckSkeleton from "@/components/deck-skeleton";
 import DeckCard from "@/components/deck-card";
@@ -15,7 +16,10 @@ export default function Discover() {
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold">Discover</h1>
+      <PageHeader
+        title="Discover"
+        description="Swipe to find teammates who share your goals."
+      />
 
       {error && (
         <p role="alert" className="mt-2 text-sm text-danger">

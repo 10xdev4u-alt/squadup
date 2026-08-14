@@ -12,6 +12,7 @@ import Layout from "@/components/Layout";
 import Avatar from "@/components/avatar";
 import Countdown from "@/components/countdown";
 import TeamChat from "@/components/team-chat";
+import TeamStats from "@/components/team-stats";
 import { Badge } from "@/components/ui/badge";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, getApiErrorMessage } from "@/lib/api";
@@ -24,6 +25,10 @@ export default function TeamDashboardPage() {
 
   const [team, setTeam] = useState<TeamDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<{
+    openTickets: number;
+    resources: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!teamId) return;
@@ -35,6 +40,29 @@ export default function TeamDashboardPage() {
       })
       .catch((err) => {
         if (!cancelled) setError(getApiErrorMessage(err));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [teamId]);
+
+  useEffect(() => {
+    if (!teamId) return;
+    let cancelled = false;
+    Promise.all([
+      api().tickets.fetchTickets(teamId, 1, 1),
+      api().resources.fetchResources(teamId, 1),
+    ])
+      .then(([tickets, resources]) => {
+        if (!cancelled) {
+          setStats({
+            openTickets: tickets.totalItems,
+            resources: resources.totalItems,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStats({ openTickets: 0, resources: 0 });
       });
     return () => {
       cancelled = true;
@@ -108,6 +136,16 @@ export default function TeamDashboardPage() {
             </Link>
           </aside>
         </header>
+
+        {team && stats && (
+          <div className="mt-8">
+            <TeamStats
+              members={team.members.length}
+              openTickets={stats.openTickets}
+              resources={stats.resources}
+            />
+          </div>
+        )}
 
         <nav
           aria-label="Team workspace"

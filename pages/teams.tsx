@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import Layout from "@/components/Layout";
+import PageHeader from "@/components/page-header";
 import EmptyState from "@/components/empty-state";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, getApiErrorMessage } from "@/lib/api";
@@ -60,10 +61,10 @@ export default function TeamDirectory() {
 
   return (
     <Layout>
-      <h1 className="text-3xl font-bold">Browse Teams</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Open teams looking for their missing roles.
-      </p>
+      <PageHeader
+        title="Browse Teams"
+        description="Open teams looking for their missing roles."
+      />
 
       <form
         className="mt-6 flex max-w-md flex-col gap-3 rounded-card border border-border bg-card p-4 sm:flex-row sm:items-center"
