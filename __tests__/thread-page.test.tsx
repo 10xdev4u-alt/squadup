@@ -56,6 +56,16 @@ describe("Match thread page", () => {
     expect(fetchMessagesMock).toHaveBeenCalledWith("m1");
   });
 
+  it("links to the form-a-team flow from the header", async () => {
+    render(<ThreadPage />);
+
+    await waitFor(() => expect(screen.getByText("Hey!")).toBeInTheDocument());
+    expect(screen.getByRole("link", { name: /form a team/i })).toHaveAttribute(
+      "href",
+      "/team/new"
+    );
+  });
+
   it("appends realtime messages as they arrive", async () => {
     render(<ThreadPage />);
     await waitFor(() => expect(subscribeMessagesMock).toHaveBeenCalled());
