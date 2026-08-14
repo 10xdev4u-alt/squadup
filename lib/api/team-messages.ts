@@ -15,7 +15,7 @@ function toMessage(record: Record<string, unknown>): TeamMessage {
     team: String(record.team),
     sender: String(record.sender),
     message: String(record.message),
-    createdAt: String(record.createdAt),
+    createdAt: String(record.created),
   };
 }
 

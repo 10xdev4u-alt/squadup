@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { getClient } from "@/lib/api/client";
 import { getCurrentUser } from "@/lib/api/session";
+import { formatMessageTime } from "@/lib/format-message-time";
 import type { TeamMessage } from "@/types/squadup";
 
 interface TeamChatProps {
@@ -120,19 +121,18 @@ export default function TeamChat({ teamId }: TeamChatProps) {
                       : "rounded-bl-sm bg-muted text-foreground"
                   }`}
                 >
-                  <p>{message.message}</p>
-                  <p
-                    className={`mt-0.5 text-[10px] ${
-                      mine
-                        ? "text-primary-foreground/70"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    {new Date(message.createdAt).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                  <p>{message.message}</p>{" "}
+                  {formatMessageTime(message.createdAt) && (
+                    <p
+                      className={`mt-0.5 text-[10px] ${
+                        mine
+                          ? "text-primary-foreground/70"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {formatMessageTime(message.createdAt)}
+                    </p>
+                  )}
                 </div>
               </div>
             );
