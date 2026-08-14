@@ -187,3 +187,21 @@ describe("removedMembers", () => {
     expect(removedMembers(["u-lead"], ["u-lead", "u-new"])).toEqual([]);
   });
 });
+
+// Kanban / workspace (§4B, §8 — tasks).
+import { describe, it, expect } from "vitest";
+import { isTeamMember } from "./domain.js";
+
+describe("isTeamMember", () => {
+  it("accepts a member of the team", () => {
+    expect(isTeamMember({ members: ["u-a", "u-b"] }, "u-a")).toBe(true);
+  });
+
+  it("rejects an outsider", () => {
+    expect(isTeamMember({ members: ["u-a", "u-b"] }, "u-x")).toBe(false);
+  });
+
+  it("rejects a missing user id", () => {
+    expect(isTeamMember({ members: ["u-a"] }, null)).toBe(false);
+  });
+});
