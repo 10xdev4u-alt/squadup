@@ -5,13 +5,22 @@ import TeamDirectory from "@/pages/teams";
 import type { TeamCard } from "@/types/squadup";
 
 const fetchTeamCardsMock = vi.fn();
+const fetchTeamByInviteMock = vi.fn();
+const routerPushMock = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   api: () => ({
-    teams: { fetchTeamCards: fetchTeamCardsMock },
+    teams: {
+      fetchTeamCards: fetchTeamCardsMock,
+      fetchTeamByInvite: fetchTeamByInviteMock,
+    },
   }),
   getApiErrorMessage: (err: unknown) =>
     err instanceof Error ? err.message : "Something went wrong on our end.",
+}));
+
+vi.mock("next/router", () => ({
+  useRouter: () => ({ push: routerPushMock }),
 }));
 
 vi.mock("@/lib/use-require-auth", () => ({
@@ -25,6 +34,7 @@ function makeTeam(overrides: Partial<TeamCard> = {}): TeamCard {
     problemStatement: "p1",
     status: "open",
     rolesNeeded: ["Developer"],
+    memberCount: 2,
     ...overrides,
   };
 }
@@ -62,6 +72,45 @@ describe("Team directory page", () => {
 
     await waitFor(() => expect(fetchTeamCardsMock).toHaveBeenCalled());
     expect(fetchTeamCardsMock).toHaveBeenCalledWith(1, 12, undefined);
+  });
+
+  it("joins a team by invite code — redirects to its detail", async () => {
+    fetchTeamByInviteMock.mockResolvedValue(makeTeam());
+
+    render(<TeamDirectory />);
+    await waitFor(() =>
+      expect(screen.getByText("Navigators")).toBeInTheDocument()
+    );
+
+    const input = screen.getByLabelText(/invite code/i);
+    await userEvent.type(input, "INVITE42");
+    await userEvent.click(
+      screen.getByRole("button", { name: /join with code/i })
+    );
+
+    await waitFor(() =>
+      expect(fetchTeamByInviteMock).toHaveBeenCalledWith("INVITE42")
+    );
+    expect(routerPushMock).toHaveBeenCalledWith("/teams/t1");
+  });
+
+  it("shows an error for an unknown invite code", async () => {
+    fetchTeamByInviteMock.mockResolvedValue(null);
+
+    render(<TeamDirectory />);
+    await waitFor(() =>
+      expect(screen.getByText("Navigators")).toBeInTheDocument()
+    );
+
+    await userEvent.type(screen.getByLabelText(/invite code/i), "NOPE");
+    await userEvent.click(
+      screen.getByRole("button", { name: /join with code/i })
+    );
+
+    expect(
+      await screen.findByText(/no team with that code/i)
+    ).toBeInTheDocument();
+    expect(routerPushMock).not.toHaveBeenCalled();
   });
 
   it("filters by role from the chips", async () => {

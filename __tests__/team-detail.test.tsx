@@ -12,6 +12,7 @@ const fetchRequestsMock = vi.fn();
 const decideRequestMock = vi.fn();
 const subscribeMyRequestsMock = vi.fn();
 const getClientMock = vi.fn();
+const routerPushMock = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   api: () => ({
@@ -36,7 +37,7 @@ vi.mock("@/lib/use-require-auth", () => ({
 }));
 
 vi.mock("next/router", () => ({
-  useRouter: () => ({ query: { id: "t1" } }),
+  useRouter: () => ({ query: { id: "t1" }, push: routerPushMock }),
 }));
 
 function makeDetail(overrides: Partial<TeamDetail> = {}): TeamDetail {
@@ -50,6 +51,7 @@ function makeDetail(overrides: Partial<TeamDetail> = {}): TeamDetail {
     members: [{ id: "u-lead", name: "Arjun Patel" }],
     deadline: "2026-08-16T12:00:00.000Z",
     chatLink: null,
+    inviteCode: null,
     ...overrides,
   };
 }
@@ -144,9 +146,45 @@ describe("Team detail page — join flow", () => {
     const callback = call[0] as (request: JoinRequest) => void;
 
     await act(async () => {
+      callback(makeRequest({ status: "rejected" }));
+    });
+
+    expect(screen.getByRole("status")).toHaveTextContent(/declined/i);
+  });
+
+  it("refetches the team after the leader accepts so members stay fresh", async () => {
+    getClientMock.mockReturnValue({
+      authStore: { record: { id: "u-lead" }, isValid: true },
+    });
+    fetchRequestsMock.mockResolvedValue([makeRequest()]);
+    decideRequestMock.mockResolvedValue(makeRequest({ status: "accepted" }));
+    fetchTeamDetailMock.mockClear();
+
+    render(<TeamDetailPage />);
+    await waitFor(() =>
+      expect(screen.getByText(/build things/i)).toBeInTheDocument()
+    );
+    expect(fetchTeamDetailMock).toHaveBeenCalledTimes(1);
+
+    await userEvent.click(screen.getByRole("button", { name: /accept/i }));
+
+    await waitFor(() => expect(fetchTeamDetailMock).toHaveBeenCalledTimes(2));
+  });
+
+  it("redirects the applicant to the workspace when accepted via realtime", async () => {
+    fetchRequestsMock.mockResolvedValue([]);
+    requestToJoinMock.mockResolvedValue(makeRequest());
+
+    render(<TeamDetailPage />);
+    await waitFor(() => expect(subscribeMyRequestsMock).toHaveBeenCalled());
+
+    const call = subscribeMyRequestsMock.mock.calls[0] ?? [];
+    const callback = call[0] as (request: JoinRequest) => void;
+
+    await act(async () => {
       callback(makeRequest({ status: "accepted" }));
     });
 
-    expect(screen.getByRole("status")).toHaveTextContent(/accepted/i);
+    expect(routerPushMock).toHaveBeenCalledWith("/team/t1");
   });
 });

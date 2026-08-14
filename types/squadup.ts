@@ -112,6 +112,14 @@ export interface MatchMessage {
   createdAt: string;
 }
 
+export interface TeamMessage {
+  id: string;
+  team: string;
+  sender: string;
+  message: string;
+  createdAt: string;
+}
+
 export interface Team {
   id: string;
   name: string;
@@ -202,7 +210,11 @@ export type EditableProfile = Omit<User, "id" | "collegeId" | "status">;
 export type TeamCard = Pick<
   Team,
   "id" | "name" | "problemStatement" | "status" | "rolesNeeded"
->;
+> & {
+  /** §9: directory cards show how many people are already in. Count only —
+   *  names/ids stay behind the §8 privacy boundary. */
+  memberCount: number;
+};
 
 /** §4C link detection result — returned by detectResourceType(url). */
 export interface ResourceInfo {

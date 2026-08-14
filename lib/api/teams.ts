@@ -26,6 +26,8 @@ import { normalizeError } from "@/lib/api/error";
  */
 export type NewTeam = Pick<Team, "name" | "rolesNeeded"> & {
   problemStatement?: string;
+  /** The match id when forming the team from a chat — the partner joins as a member. */
+  match?: string;
 };
 
 /** Directory filters — role narrows the §10 open-teams guard. */
@@ -56,6 +58,11 @@ export interface TeamDetail {
    * null — the raw record keeps chatLink, but the DTO drops it for them.
    */
   chatLink: string | null;
+  /**
+   * §2 Mode 2 invite path: the join code is leader-only. Members/strangers
+   * see null — the leader shares it, applicants enter it on the directory.
+   */
+  inviteCode: string | null;
 }
 
 /**
@@ -74,12 +81,18 @@ export interface AdminTeamRow {
 }
 
 function toTeamCard(record: Record<string, unknown>): TeamCard {
+  const expand = (record.expand ?? {}) as Record<string, unknown>;
+  const members = Array.isArray(expand.members)
+    ? (expand.members as unknown[])
+    : [];
   return {
     id: String(record.id),
     name: String(record.name),
     problemStatement: String(record.problemStatement),
     status: record.status as TeamCard["status"],
     rolesNeeded: (record.rolesNeeded ?? []) as PrimaryRole[],
+    // §9 card copy shows the headcount; §8 keeps names/ids private.
+    memberCount: members.length,
   };
 }
 
@@ -109,6 +122,7 @@ function toTeamDetail(
     : [];
   const isMember =
     meId !== "" && (leader.id === meId || members.some((m) => m.id === meId));
+  const isLeader = meId !== "" && leader.id === meId;
   return {
     id: String(record.id),
     name: String(record.name),
@@ -120,6 +134,9 @@ function toTeamDetail(
     deadline: String(record.deadline ?? ""),
     // §8 privacy: the chat link is members-only (closes the I1 flag).
     chatLink: isMember && record.chatLink ? String(record.chatLink) : null,
+    // §2 Mode 2: the invite code is leader-only.
+    inviteCode:
+      isLeader && record.inviteCode ? String(record.inviteCode) : null,
   };
 }
 
@@ -161,6 +178,26 @@ export function createTeamsApi(client: PbClient) {
     }
   }
 
+  /**
+   * The current user's team, or null when not in one (§2: at most one active
+   * team). Powers the "My Team" nav entry and the home workspace card.
+   */
+  async function fetchMyTeam(): Promise<TeamCard | null> {
+    try {
+      const meId = client.authStore.record?.id as string | undefined;
+      if (!meId) {
+        return null;
+      }
+      const result = await collection().getList(1, 1, {
+        filter: `members ?~ '${meId}'`,
+      });
+      const record = result.items[0] as Record<string, unknown> | undefined;
+      return record ? toTeamCard(record) : null;
+    } catch (err) {
+      throw normalizeError(err);
+    }
+  }
+
   async function fetchTeamCards(
     page = 1,
     perPage?: number,
@@ -175,8 +212,27 @@ export function createTeamsApi(client: PbClient) {
       const result = await collection().getList(p, pp, {
         sort: "-created",
         filter,
+        // §9: the directory card shows the member headcount (§8: count only).
+        expand: "members",
       });
       return toPaginated(result, toTeamCard);
+    } catch (err) {
+      throw normalizeError(err);
+    }
+  }
+
+  /**
+   * Resolve a shared invite code to its team card (§2 Mode 2 invite path).
+   * Only the team id/name cross back — the code itself stays server-owned.
+   */
+  async function fetchTeamByInvite(code: string): Promise<TeamCard | null> {
+    try {
+      const result = await collection().getList(1, 1, {
+        filter: `inviteCode = '${code}'`,
+        expand: "members",
+      });
+      const first = result.items[0] as Record<string, unknown> | undefined;
+      return first ? toTeamCard(first) : null;
     } catch (err) {
       throw normalizeError(err);
     }
@@ -266,7 +322,9 @@ export function createTeamsApi(client: PbClient) {
 
   return {
     fetchTeamCard,
+    fetchMyTeam,
     fetchTeamCards,
+    fetchTeamByInvite,
     fetchTeamDetail,
     fetchAdminTeams,
     createTeam,

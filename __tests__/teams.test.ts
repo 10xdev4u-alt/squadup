@@ -46,6 +46,130 @@ describe("teams api — fetchTeamCards", () => {
     expect(result.items[0]?.name).toBe("Navigators");
   });
 
+  it("derives memberCount from expanded members (count only, §8 privacy)", async () => {
+    const service = makeService({
+      getList: vi.fn(async () => ({
+        page: 1,
+        perPage: 12,
+        totalItems: 1,
+        totalPages: 1,
+        items: [
+          {
+            id: "t1",
+            name: "Navigators",
+            problemStatement: "p1",
+            status: "open",
+            rolesNeeded: ["Developer"],
+            expand: {
+              members: [
+                { id: "u-lead", name: "Arjun" },
+                { id: "u-dev", name: "Priya" },
+              ],
+            },
+          },
+        ],
+      })),
+    });
+    const api = createTeamsApi(makeClientWith(service));
+
+    const result = await api.fetchTeamCards(1, 12);
+
+    expect(result.items[0]?.memberCount).toBe(2);
+    // §8 privacy: names/ids never cross — only the count.
+    const card = result.items[0] as Record<string, unknown>;
+    expect(card.members).toBeUndefined();
+  });
+
+  it("resolves a team by invite code (leader-shareable join path)", async () => {
+    const service = makeService({
+      getList: vi.fn(async () => ({
+        page: 1,
+        perPage: 1,
+        totalItems: 1,
+        totalPages: 1,
+        items: [
+          {
+            id: "t1",
+            name: "Navigators",
+            problemStatement: "p1",
+            status: "open",
+            rolesNeeded: ["Developer"],
+            expand: { members: [{ id: "u-lead", name: "Arjun" }] },
+          },
+        ],
+      })),
+    });
+    const api = createTeamsApi(makeClientWith(service));
+
+    const result = await api.fetchTeamByInvite("INVITE1");
+
+    expect(service.getList).toHaveBeenCalledWith(
+      1,
+      1,
+      expect.objectContaining({ filter: "inviteCode = 'INVITE1'" })
+    );
+    expect(result?.name).toBe("Navigators");
+    // §8: the code never crosses back — only the team id/name do.
+    expect((result as Record<string, unknown>).inviteCode).toBeUndefined();
+  });
+
+  it("returns null for an unknown invite code", async () => {
+    const service = makeService({
+      getList: vi.fn(async () => ({
+        page: 1,
+        perPage: 1,
+        totalItems: 0,
+        totalPages: 0,
+        items: [],
+      })),
+    });
+    const api = createTeamsApi(makeClientWith(service));
+
+    expect(await api.fetchTeamByInvite("NOPE")).toBe(null);
+  });
+
+  it("returns null when the user is in no team", async () => {
+    const api = createTeamsApi(makeClientWith(makeService()));
+
+    const result = await api.fetchMyTeam();
+
+    expect(result).toBe(null);
+  });
+
+  it("returns the user's team when they are a member", async () => {
+    const service = makeService({
+      getList: vi.fn(async () => ({
+        page: 1,
+        perPage: 1,
+        totalItems: 1,
+        totalPages: 1,
+        items: [
+          {
+            id: "t1",
+            name: "Navigators",
+            problemStatement: "p1",
+            status: "open",
+            rolesNeeded: ["Developer"],
+          },
+        ],
+      })),
+    });
+    const api = createTeamsApi(makeClientWith(service));
+
+    const result = await api.fetchMyTeam();
+
+    // The my-team query scopes to the current user's memberships (§2: one
+    // active team max, so the first hit is THE team).
+    expect(service.getList).toHaveBeenCalledWith(
+      1,
+      1,
+      expect.objectContaining({
+        filter: "members ?~ 'u-me'",
+      })
+    );
+    expect(result?.name).toBe("Navigators");
+  });
+
   it("appends a role filter to the §10 guard", async () => {
     const service = makeService();
     const api = createTeamsApi(makeClientWith(service));
@@ -113,6 +237,7 @@ describe("teams api — fetchTeamDetail", () => {
       leader: { id: "u-lead", name: "Arjun Patel" },
       deadline: "2026-08-16T12:00:00.000Z",
       chatLink: null,
+      inviteCode: null,
       members: [
         { id: "u-lead", name: "Arjun Patel" },
         { id: "u-dev", name: "Priya Sharma" },

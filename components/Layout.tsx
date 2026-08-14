@@ -1,10 +1,13 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import TeamNavLink from "@/components/team-nav-link";
+import AdminNavLink from "@/components/admin-nav-link";
 
 const NAV_LINKS = [
   { href: "/discover", label: "Discover" },
   { href: "/matches", label: "Matches" },
   { href: "/teams", label: "Browse Teams" },
+  { href: "/profile", label: "Profile" },
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -30,6 +33,8 @@ export default function Layout({ children }: { children: ReactNode }) {
                 </Link>
               </li>
             ))}
+            <TeamNavLink />
+            <AdminNavLink />
           </ul>
         </nav>
       </header>

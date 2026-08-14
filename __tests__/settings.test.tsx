@@ -45,6 +45,7 @@ function makeDetail(overrides: Partial<TeamDetail> = {}): TeamDetail {
     ],
     deadline: "2026-08-16T12:00:00.000Z",
     chatLink: "https://chat.example/invite",
+    inviteCode: "INVITE42",
     ...overrides,
   };
 }
@@ -80,6 +81,16 @@ describe("team settings — /team/[id]/settings", () => {
     expect(
       await screen.findByText(/only the leader can manage/i)
     ).toBeInTheDocument();
+  });
+
+  it("shows the leader-only invite code", async () => {
+    fetchTeamDetailMock.mockResolvedValue(makeDetail());
+
+    render(<TeamSettingsPage />);
+
+    expect(await screen.findByTestId("invite-code")).toHaveTextContent(
+      "INVITE42"
+    );
   });
 
   it("saves the chat link and status toggle", async () => {

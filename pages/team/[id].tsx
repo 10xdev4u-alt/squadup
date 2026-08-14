@@ -10,6 +10,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import Countdown from "@/components/countdown";
+import TeamChat from "@/components/team-chat";
 import { Badge } from "@/components/ui/badge";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, getApiErrorMessage } from "@/lib/api";
@@ -140,20 +141,20 @@ export default function TeamDashboardPage() {
           </Link>
         </nav>
 
+        <TeamChat teamId={team.id} />
+
         {team.chatLink && (
-          <section aria-labelledby="chat-heading" className="mt-10">
-            <h2 id="chat-heading" className="text-lg font-semibold">
-              Team Chat
-            </h2>
+          <p className="mt-3 text-sm text-muted-foreground">
+            External chat{" "}
             <a
               href={team.chatLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center gap-2 rounded-control bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              Open Team Chat
+              (Discord / WhatsApp)
             </a>
-          </section>
+          </p>
         )}
 
         <section aria-labelledby="members-heading" className="mt-10">

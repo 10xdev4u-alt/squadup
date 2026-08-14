@@ -5,10 +5,17 @@ import type { TeamDetail } from "@/lib/api/teams";
 
 const fetchTeamDetailMock = vi.fn();
 const getClientMock = vi.fn();
+const fetchTeamMessagesMock = vi.fn();
+const subscribeTeamMessagesMock = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   api: () => ({
     teams: { fetchTeamDetail: fetchTeamDetailMock },
+    teamMessages: {
+      fetchMessages: fetchTeamMessagesMock,
+      sendMessage: vi.fn(),
+      subscribeMessages: subscribeTeamMessagesMock,
+    },
   }),
   getApiErrorMessage: (err: unknown) =>
     err instanceof Error ? err.message : "Something went wrong on our end.",
@@ -44,6 +51,7 @@ function makeDetail(overrides: Partial<TeamDetail> = {}): TeamDetail {
     ],
     deadline: "2026-08-16T12:00:00.000Z",
     chatLink: null,
+    inviteCode: null,
     ...overrides,
   };
 }
@@ -51,6 +59,8 @@ function makeDetail(overrides: Partial<TeamDetail> = {}): TeamDetail {
 beforeEach(() => {
   fetchTeamDetailMock.mockReset();
   getClientMock.mockReset();
+  fetchTeamMessagesMock.mockReset().mockResolvedValue([]);
+  subscribeTeamMessagesMock.mockReset().mockResolvedValue(async () => {});
 });
 
 describe("team dashboard — /team/[id]", () => {
@@ -117,18 +127,18 @@ describe("team dashboard — chat link + settings entry (I21)", () => {
     render(<TeamDashboardPage />);
 
     expect(
-      await screen.findByRole("link", { name: /open team chat/i })
+      await screen.findByRole("link", { name: /discord \/ whatsapp/i })
     ).toHaveAttribute("href", "https://chat.example/invite");
   });
 
-  it("omits the chat link when the team has none", async () => {
+  it("omits the external chat link when the team has none", async () => {
     fetchTeamDetailMock.mockResolvedValue(makeDetail({ chatLink: null }));
 
     render(<TeamDashboardPage />);
 
     await screen.findByRole("heading", { name: "Navigators" });
     expect(
-      screen.queryByRole("link", { name: /open team chat/i })
+      screen.queryByRole("link", { name: /discord \/ whatsapp/i })
     ).not.toBeInTheDocument();
   });
 

@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import EmptyState from "@/components/empty-state";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 import {
   PRIMARY_ROLES,
   type PrimaryRole,
@@ -16,10 +17,14 @@ const PER_PAGE = 12;
 
 export default function TeamDirectory() {
   useRequireAuth();
+  const router = useRouter();
   const [result, setResult] = useState<Paginated<TeamCard> | null>(null);
   const [page, setPage] = useState(1);
   const [role, setRole] = useState<PrimaryRole | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [lookingUp, setLookingUp] = useState(false);
 
   const load = useCallback(
     async (targetPage: number, targetRole: PrimaryRole | undefined) => {
@@ -59,6 +64,57 @@ export default function TeamDirectory() {
       <p className="mt-2 text-sm text-muted-foreground">
         Open teams looking for their missing roles.
       </p>
+
+      <form
+        className="mt-6 flex max-w-md flex-col gap-3 rounded-card border border-border bg-card p-4 sm:flex-row sm:items-center"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const trimmed = code.trim();
+          if (!trimmed || lookingUp) return;
+          setLookingUp(true);
+          setCodeError(null);
+          api()
+            .teams.fetchTeamByInvite(trimmed)
+            .then((team) => {
+              if (!team) {
+                setCodeError("No team with that code was found.");
+                return;
+              }
+              void router.push(`/teams/${team.id}`);
+            })
+            .catch((err) => setCodeError(getApiErrorMessage(err)))
+            .finally(() => setLookingUp(false));
+        }}
+      >
+        <label htmlFor="invite-code" className="text-sm font-medium">
+          Invite code
+        </label>
+        <input
+          id="invite-code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="e.g. ABC123"
+          aria-invalid={!!codeError}
+          aria-describedby={codeError ? "invite-code-error" : undefined}
+          className="flex-1 rounded-control border border-border bg-surface px-4 py-2 text-sm focus:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        />
+        <button
+          type="submit"
+          disabled={lookingUp || !code.trim()}
+          className="rounded-control bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+        >
+          Join with code
+        </button>
+        {codeError && (
+          <p
+            id="invite-code-error"
+            role="alert"
+            className="text-sm text-danger"
+          >
+            {codeError}
+          </p>
+        )}
+      </form>
 
       <fieldset className="mt-6">
         <legend className="text-sm font-medium">Filter by role</legend>
@@ -110,7 +166,8 @@ export default function TeamDirectory() {
                 >
                   <span className="text-lg font-semibold">{team.name}</span>
                   <span className="text-xs text-muted-foreground">
-                    Looking for: {team.rolesNeeded.join(", ")}
+                    {team.memberCount} member{team.memberCount === 1 ? "" : "s"}{" "}
+                    · Looking for: {team.rolesNeeded.join(", ")}
                   </span>
                 </Link>
               </li>

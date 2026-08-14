@@ -7,23 +7,24 @@ import {
   isSelfJoin,
   isDuplicateSwipe,
   isMatchMember,
+  matchPartner,
   orderMatchPair,
   shouldCreateMatch,
 } from "./domain";
 
 describe("isCollegeEmail", () => {
   it("accepts a valid college address", () => {
-    expect(isCollegeEmail("jane@college.edu")).toBe(true);
+    expect(isCollegeEmail("jane@svce.ac.in")).toBe(true);
   });
 
   it("accepts a subdomain of the college domain", () => {
-    expect(isCollegeEmail("jane@eng.college.edu")).toBe(true);
+    expect(isCollegeEmail("jane@eng.svce.ac.in")).toBe(true);
   });
 
   it("rejects non-college domains", () => {
     expect(isCollegeEmail("jane@gmail.com")).toBe(false);
     expect(isCollegeEmail("jane@college.com")).toBe(false);
-    expect(isCollegeEmail("jane@college.edu.evil.com")).toBe(false);
+    expect(isCollegeEmail("jane@svce.ac.in.evil.com")).toBe(false);
   });
 
   it("rejects malformed input", () => {
@@ -84,6 +85,33 @@ describe("isMatchMember", () => {
     expect(isMatchMember(match, "")).toBe(false);
     expect(isMatchMember(match, null)).toBe(false);
     expect(isMatchMember(match, undefined)).toBe(false);
+  });
+});
+
+describe("matchPartner", () => {
+  const match = { userA: "u-a", userB: "u-b" };
+
+  it("returns the other participant for userA", () => {
+    expect(matchPartner(match, "u-a")).toBe("u-b");
+  });
+
+  it("returns the other participant for userB", () => {
+    expect(matchPartner(match, "u-b")).toBe("u-a");
+  });
+
+  it("returns null for anyone outside the match", () => {
+    expect(matchPartner(match, "u-c")).toBe(null);
+  });
+
+  it("returns null for a missing user id", () => {
+    expect(matchPartner(match, "")).toBe(null);
+    expect(matchPartner(match, null)).toBe(null);
+    expect(matchPartner(match, undefined)).toBe(null);
+  });
+
+  it("returns null for a missing match", () => {
+    expect(matchPartner(null, "u-a")).toBe(null);
+    expect(matchPartner(undefined, "u-a")).toBe(null);
   });
 });
 

@@ -72,7 +72,7 @@ export function createSwipesApi(client: PbClient) {
       const meRecord = await users().getOne(meId);
       const me = toUser(meRecord);
       const [usersList, swipesList] = await Promise.all([
-        users().getList(1, 200, { filter: "status = 'solo'" }),
+        users().getList(1, 200, { filter: "status = 'solo' && name != ''" }),
         collection().getList(1, 200, { filter: `fromUser = '${meId}'` }),
       ]);
       return buildDeck({

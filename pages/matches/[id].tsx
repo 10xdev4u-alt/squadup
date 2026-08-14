@@ -20,6 +20,16 @@ export default function MatchThread() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Appends a message unless it is already in the thread. Both the optimistic
+  // send result and the realtime echo can deliver the same record — order
+  // depends on whether realtime fires before or after the POST resolves — so
+  // every append path goes through here.
+  const appendUnique = useCallback((message: MatchMessage) => {
+    setMessages((current) =>
+      current.some((m) => m.id === message.id) ? current : [...current, message]
+    );
+  }, []);
+
   useEffect(() => {
     if (!matchId) return;
     let cancelled = false;
@@ -43,7 +53,7 @@ export default function MatchThread() {
     api()
       .matches.subscribeMessages(matchId, (message) => {
         if (active) {
-          setMessages((current) => [...current, message]);
+          appendUnique(message);
         }
       })
       .then((unsubscribe) => {
@@ -57,7 +67,7 @@ export default function MatchThread() {
       active = false;
       if (stop) void stop();
     };
-  }, [matchId]);
+  }, [matchId, appendUnique]);
 
   const send = useCallback(async () => {
     const text = draft.trim();
@@ -66,14 +76,14 @@ export default function MatchThread() {
     setSending(true);
     try {
       const sent = await api().matches.sendMessage(matchId, text);
-      setMessages((current) => [...current, sent]);
+      appendUnique(sent);
       setDraft("");
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
       setSending(false);
     }
-  }, [draft, sending, matchId]);
+  }, [draft, sending, matchId, appendUnique]);
 
   return (
     <Layout>
@@ -81,7 +91,7 @@ export default function MatchThread() {
         <header className="flex items-center justify-between border-b border-border pb-4">
           <h1 className="text-2xl font-bold">Chat</h1>
           <Link
-            href="/team/new"
+            href={`/team/new?match=${matchId}`}
             className="rounded-control bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             Form a Team

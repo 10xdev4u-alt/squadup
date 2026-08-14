@@ -183,6 +183,17 @@ export default function TeamSettingsPage() {
           className="mt-8 space-y-8 rounded-card border border-border bg-card p-6"
         >
           <div className="grid gap-6 sm:grid-cols-2">
+            <div className="flex flex-col gap-1 text-sm">
+              <span className="text-xs font-medium text-muted-foreground">
+                Invite code — share to let teammates join (§2 Mode 2)
+              </span>
+              <code
+                data-testid="invite-code"
+                className="rounded-control border border-border bg-background px-3 py-2 font-mono text-base"
+              >
+                {team.inviteCode ?? "—"}
+              </code>
+            </div>
             <label className="flex flex-col gap-1 text-sm">
               <span className="text-xs font-medium text-muted-foreground">
                 Team chat link (Discord / WhatsApp invite)

@@ -9,14 +9,16 @@ import { toUser } from "@/lib/api/auth";
 import type { ApiError } from "@/lib/api/error";
 
 /** The current authenticated user, or null when signed out. */
-export function getCurrentUser(client: PbClient): User | null {
-  const record = client.authStore.record;
+export function getCurrentUser(
+  client: PbClient | null | undefined
+): User | null {
+  const record = client?.authStore.record;
   return record ? toUser(record) : null;
 }
 
 /** True when a valid (non-expired) session exists. */
-export function isAuthenticated(client: PbClient): boolean {
-  return client.authStore.isValid;
+export function isAuthenticated(client: PbClient | null | undefined): boolean {
+  return !!client?.authStore.isValid;
 }
 
 /**

@@ -3,14 +3,14 @@
 
 // College email domains allowed to register (§5, §8). The hook (main.pb.js)
 // overrides this via the ALLOWED_SIGNUP_DOMAIN env var; this is the fallback.
-export const DEFAULT_COLLEGE_DOMAINS = ["college.edu"];
+const DEFAULT_COLLEGE_DOMAINS = ["svce.ac.in"];
 
 /**
  * True when the email belongs to one of the given college domains (or a
  * subdomain of one). Lookalike domains like "college.edu.evil.com" are
  * rejected by design.
  */
-export function isCollegeEmail(email, domains = DEFAULT_COLLEGE_DOMAINS) {
+function isCollegeEmail(email, domains = DEFAULT_COLLEGE_DOMAINS) {
   if (typeof email !== "string") return false;
   const at = email.lastIndexOf("@");
   if (at <= 0 || at === email.length - 1) return false;
@@ -23,7 +23,7 @@ export function isCollegeEmail(email, domains = DEFAULT_COLLEGE_DOMAINS) {
  * isCollegeEmail) OR an exact match in the admin allowlist (case-insensitive).
  * The allowlist is the demo-day escape hatch — never a substring match.
  */
-export function isOtpEmailAllowed(email, allowlist = []) {
+function isOtpEmailAllowed(email, allowlist = []) {
   if (!Array.isArray(allowlist) || typeof email !== "string") return false;
   if (isCollegeEmail(email)) return true;
   const normalized = email.toLowerCase();
@@ -36,7 +36,7 @@ export function isOtpEmailAllowed(email, allowlist = []) {
  * True when this exact (fromUser, toUser) swipe already exists.
  * The reverse direction is NOT a duplicate — that is a mutual match in waiting.
  */
-export function isDuplicateSwipe(swipes, fromUser, toUser) {
+function isDuplicateSwipe(swipes, fromUser, toUser) {
   return swipes.some((s) => s.fromUser === fromUser && s.toUser === toUser);
 }
 
@@ -45,12 +45,7 @@ export function isDuplicateSwipe(swipes, fromUser, toUser) {
  * swiped right on the source). The caller is responsible for creating the
  * match record atomically with the swipe — the unique index is the backstop.
  */
-export function shouldCreateMatch(
-  swipes,
-  fromUser,
-  toUser,
-  direction = "right"
-) {
+function shouldCreateMatch(swipes, fromUser, toUser, direction = "right") {
   if (direction !== "right") return false;
   return swipes.some(
     (s) =>
@@ -62,8 +57,8 @@ export function shouldCreateMatch(
  * Returns the id of the team the user currently belongs to, or null.
  * Backs the single-active-team rule (§2: in any team -> out of the deck).
  */
-export function findUserTeam(teams, userId) {
-  const team = teams.find((t) => t.members.includes(userId));
+function findUserTeam(teams, userId) {
+  const team = teams.find((t) => (t.members || []).includes(userId));
   return team ? team.id : null;
 }
 
@@ -71,7 +66,7 @@ export function findUserTeam(teams, userId) {
  * Canonical ordering for a match pair, so the unique index on (userA, userB)
  * catches both directions and no (a, b) / (b, a) duplicates can exist.
  */
-export function orderMatchPair(a, b) {
+function orderMatchPair(a, b) {
   return a < b ? [a, b] : [b, a];
 }
 
@@ -81,7 +76,7 @@ const INVITE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
  * Generates an 8-character team invite code (unique index on teams.inviteCode).
  * Unambiguous uppercase alphanumerics so codes are easy to read aloud.
  */
-export function generateInviteCode() {
+function generateInviteCode() {
   let code = "";
   for (let i = 0; i < 8; i++) {
     code += INVITE_ALPHABET[Math.floor(Math.random() * INVITE_ALPHABET.length)];
@@ -94,16 +89,28 @@ export function generateInviteCode() {
  * Backs the chat security rule (§2): only the two matched users may read
  * or write a conversation. `match` is a plain { userA, userB } shape.
  */
-export function isMatchMember(match, userId) {
+function isMatchMember(match, userId) {
   if (!match || !userId) return false;
   return match.userA === userId || match.userB === userId;
+}
+
+/**
+ * The other participant of a match, or null when the user is not part of it.
+ * Used by the team-create hook to pull the matched partner in as a member
+ * (§2: "Form a Team" from a chat creates the team with both as members).
+ */
+function matchPartner(match, userId) {
+  if (!match || !userId) return null;
+  if (match.userA === userId) return match.userB;
+  if (match.userB === userId) return match.userA;
+  return null;
 }
 
 /**
  * True when the applicant already has a pending join request for the team —
  * duplicates are rejected (§2 Mode 2: one request at a time per team).
  */
-export function hasPendingRequest(requests, teamId, applicantId) {
+function hasPendingRequest(requests, teamId, applicantId) {
   return requests.some(
     (r) =>
       r.team === teamId && r.applicant === applicantId && r.status === "pending"
@@ -111,40 +118,40 @@ export function hasPendingRequest(requests, teamId, applicantId) {
 }
 
 /** True when the applicant is the team's own leader (self-join guard). */
-export function isSelfJoin(team, applicantId) {
+function isSelfJoin(team, applicantId) {
   return Boolean(team && applicantId && team.leader === applicantId);
 }
 
 // Teams: the countdown target (§4B, §9). Server-owned like leader/status —
 // the create hook derives `deadline = createdAt + TEAM_DEADLINE_HOURS`.
-export const TEAM_DEADLINE_HOURS = 48;
+const TEAM_DEADLINE_HOURS = 48;
 
 /** ISO string `hours` after the team's creation instant. */
-export function deadlineFor(createdAt) {
+function deadlineFor(createdAt) {
   return new Date(
     createdAt.getTime() + TEAM_DEADLINE_HOURS * 3600 * 1000
   ).toISOString();
 }
 
 /** Whole hours remaining until the deadline (0 once passed). */
-export function hoursUntil(deadline, now) {
+function hoursUntil(deadline, now) {
   const ms = deadline.getTime() - now.getTime();
   return ms <= 0 ? 0 : Math.ceil(ms / (3600 * 1000));
 }
 
 /** True when the deadline is closer than the §9 red-pulse threshold (24h). */
-export function isUrgent(remainingMs) {
+function isUrgent(remainingMs) {
   return remainingMs > 0 && remainingMs < 24 * 3600 * 1000;
 }
 
 /** Members dropped between an old and new roster (leader removal, §4B). */
-export function removedMembers(oldMembers, newMembers) {
+function removedMembers(oldMembers, newMembers) {
   const next = new Set(newMembers || []);
   return (oldMembers || []).filter((id) => !next.has(id));
 }
 
 /** True when the user is a member of the team (workspace access, §4B). */
-export function isTeamMember(team, userId) {
+function isTeamMember(team, userId) {
   if (!team || !userId) return false;
   return (team.members || []).includes(userId);
 }
@@ -162,7 +169,7 @@ const KNOWN_DOMAINS = [
   "excalidraw.com",
 ];
 
-export function detectResourceType(url) {
+function detectResourceType(url) {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
     const match = KNOWN_DOMAINS.find(
@@ -182,24 +189,24 @@ export function detectResourceType(url) {
 
 // Mentorship (§4D — ticket roles). `mentor` is a users bool flag (schema
 // gap closed in I24 — §8 had no way to say who a mentor is).
-export function isMentor(user) {
+function isMentor(user) {
   return Boolean(user && user.mentor === true);
 }
 
 /** Ticket visibility: the team's members, or any mentor (§4D context). */
-export function canViewTicket(user, teamMembers, userId) {
+function canViewTicket(user, teamMembers, userId) {
   if (!userId) return false;
   if (isMentor(user)) return true;
   return (teamMembers || []).includes(userId);
 }
 
 /** Status transitions (assign/resolve) are mentor-only — others get 403. */
-export function canManageTicket(user) {
+function canManageTicket(user) {
   return isMentor(user);
 }
 
 // Admin (§4E — M5). `admin` is a users bool flag seeded via the PB dashboard.
-export function isAdmin(user) {
+function isAdmin(user) {
   return Boolean(user && user.admin === true);
 }
 
@@ -208,7 +215,7 @@ export function isAdmin(user) {
  * them on themselves. Only a PB superuser may touch them (closes the I24 hole
  * where `mentor` was self-claimable via the default self-update rule).
  */
-export function canModifyPrivilege(requesterIsSuperuser, changedFields) {
+function canModifyPrivilege(requesterIsSuperuser, changedFields) {
   if (requesterIsSuperuser) return true;
   const privileged = ["admin", "mentor"];
   return !(changedFields || []).some((f) => privileged.includes(f));
@@ -217,7 +224,7 @@ export function canModifyPrivilege(requesterIsSuperuser, changedFields) {
 // Beta launch (I27 — §11 Phase 8, §12).
 
 /** Seed only into an empty database — never clobber real data. */
-export function shouldSeed(teamsCount) {
+function shouldSeed(teamsCount) {
   return teamsCount === 0;
 }
 
@@ -225,7 +232,7 @@ export function shouldSeed(teamsCount) {
  * §12 metric events — anonymous by design (no user ids, no emails). Returns
  * null for events the metrics don't track, so callers can skip harmlessly.
  */
-export function toMetricEvent(collectionName, operation, recordData = {}) {
+function toMetricEvent(collectionName, operation, recordData = {}) {
   const at = new Date().toISOString();
   if (collectionName === "teams" && operation === "create") {
     return { action: "team_created", at };
@@ -246,3 +253,32 @@ export function toMetricEvent(collectionName, operation, recordData = {}) {
   }
   return null;
 }
+
+module.exports = {
+  DEFAULT_COLLEGE_DOMAINS,
+  isCollegeEmail,
+  isOtpEmailAllowed,
+  isDuplicateSwipe,
+  shouldCreateMatch,
+  findUserTeam,
+  orderMatchPair,
+  generateInviteCode,
+  isMatchMember,
+  matchPartner,
+  hasPendingRequest,
+  isSelfJoin,
+  TEAM_DEADLINE_HOURS,
+  deadlineFor,
+  hoursUntil,
+  isUrgent,
+  removedMembers,
+  isTeamMember,
+  detectResourceType,
+  isMentor,
+  canViewTicket,
+  canManageTicket,
+  isAdmin,
+  canModifyPrivilege,
+  shouldSeed,
+  toMetricEvent,
+};

@@ -23,8 +23,10 @@ vi.mock("@/lib/use-require-auth", () => ({
   useRequireAuth: () => true,
 }));
 
+let queryMock: Record<string, string> = {};
+
 vi.mock("next/router", () => ({
-  useRouter: () => ({ push: pushMock, query: {} }),
+  useRouter: () => ({ push: pushMock, query: queryMock }),
 }));
 
 function makeStatement(
@@ -96,6 +98,31 @@ describe("Form team page", () => {
         name: "Navigators",
         problemStatement: "p1",
         rolesNeeded: ["Developer"],
+      })
+    );
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/team/team-1"));
+  });
+
+  it("passes the match id through when formed from a chat", async () => {
+    queryMock = { match: "match-9" };
+
+    render(<FormTeam />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("option", { name: /smart campus navigation/i })
+      ).toBeInTheDocument()
+    );
+
+    await userEvent.type(screen.getByLabelText(/team name/i), "AgriSense");
+    await userEvent.click(screen.getByRole("button", { name: /developer/i }));
+    await userEvent.click(screen.getByRole("button", { name: /create team/i }));
+
+    await waitFor(() =>
+      expect(createTeamMock).toHaveBeenCalledWith({
+        name: "AgriSense",
+        problemStatement: undefined,
+        rolesNeeded: ["Developer"],
+        match: "match-9",
       })
     );
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/team/team-1"));
