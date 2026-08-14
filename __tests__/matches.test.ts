@@ -85,7 +85,7 @@ describe("matches api — fetchMatches", () => {
           userA: "u-me",
           userB: "u-other",
           status: "active",
-          createdAt: "2026-08-14 10:00:00.000Z",
+          created: "2026-08-14 10:00:00.000Z",
           expand: {
             userA: { id: "u-me", name: "Me" },
             userB: { id: "u-other", name: "Priya Sharma" },
@@ -120,7 +120,7 @@ describe("matches api — fetchMatches", () => {
           id: "m2",
           userA: "u-other",
           userB: "u-me",
-          createdAt: "2026-08-14 09:00:00.000Z",
+          created: "2026-08-14 09:00:00.000Z",
           expand: {
             userA: { id: "u-other", name: "Arjun Patel" },
             userB: { id: "u-me", name: "Me" },
@@ -143,6 +143,36 @@ describe("matches api — fetchMatches", () => {
   });
 });
 
+describe("matches api — fetchMatch", () => {
+  it("resolves one match's partner against the current user", async () => {
+    const matchesService = makeService({
+      getOne: vi.fn(async () => ({
+        id: "m1",
+        userA: "u-me",
+        userB: "u-them",
+        expand: {
+          userA: { id: "u-me", name: "Me" },
+          userB: { id: "u-them", name: "Priya Sharma" },
+        },
+      })),
+    });
+    const client: PbClient = {
+      collection: vi.fn(() => matchesService),
+      authStore: makeAuthStore({ record: { id: "u-me" }, isValid: true }),
+    };
+    const api = createMatchesApi(client);
+
+    const match = await api.fetchMatch("m1");
+
+    expect(matchesService.getOne).toHaveBeenCalledWith(
+      "m1",
+      expect.objectContaining({ expand: "userA,userB" })
+    );
+    expect(match.partnerName).toBe("Priya Sharma");
+    expect(match.partnerId).toBe("u-them");
+  });
+});
+
 describe("matches api — messages", () => {
   it("fetches messages for a match, oldest first", async () => {
     const { client, messagesService } = makeMatchesClient({
@@ -152,14 +182,14 @@ describe("matches api — messages", () => {
           match: "m1",
           sender: "u-me",
           message: "Hi!",
-          createdAt: "2026-08-14 10:00:00.000Z",
+          created: "2026-08-14 10:00:00.000Z",
         },
         {
           id: "msg2",
           match: "m1",
           sender: "u-other",
           message: "Hey!",
-          createdAt: "2026-08-14 10:01:00.000Z",
+          created: "2026-08-14 10:01:00.000Z",
         },
       ],
     });
@@ -184,7 +214,7 @@ describe("matches api — messages", () => {
       match: "m1",
       sender: "u-me",
       message: "Let's build!",
-      createdAt: "2026-08-14 10:02:00.000Z",
+      created: "2026-08-14 10:02:00.000Z",
     }));
     const api = createMatchesApi(client);
 
@@ -224,7 +254,7 @@ describe("matches api — subscribeMessages", () => {
       match: "m1",
       sender: "u-other",
       message: "Ready when you are",
-      createdAt: "2026-08-14 10:10:00.000Z",
+      created: "2026-08-14 10:10:00.000Z",
     };
 
     fire(msg);

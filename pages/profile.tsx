@@ -5,6 +5,7 @@
 // ============================================================================
 
 import { useState } from "react";
+import Avatar from "@/components/avatar";
 import Layout from "@/components/Layout";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, getApiErrorMessage } from "@/lib/api";
@@ -49,11 +50,19 @@ export default function ProfilePage() {
 
   return (
     <Layout>
+      {" "}
       <div className="mx-auto max-w-xl px-6 py-10">
-        <h1 className="text-3xl font-semibold tracking-tight">Edit Profile</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Keep your profile fresh so the deck and teams know what you bring.
-        </p>
+        <div className="flex items-center gap-4">
+          <Avatar name={me?.name ?? ""} src={me?.avatar ?? null} size="lg" />
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              Edit Profile
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Keep your profile fresh so the deck and teams know what you bring.
+            </p>
+          </div>
+        </div>
 
         {saved && (
           <p

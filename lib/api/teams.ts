@@ -158,7 +158,7 @@ function toAdminTeamRow(record: Record<string, unknown>): AdminTeamRow {
     memberCount: members.length,
     memberNames,
     deadline: String(record.deadline ?? ""),
-    createdAt: String(record.createdAt ?? ""),
+    createdAt: String(record.created ?? ""),
   };
 }
 

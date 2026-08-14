@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
+import Avatar from "@/components/avatar";
 import Countdown from "@/components/countdown";
 import TeamChat from "@/components/team-chat";
 import { Badge } from "@/components/ui/badge";
@@ -165,9 +166,12 @@ export default function TeamDashboardPage() {
             {team.members.map((member) => (
               <li
                 key={member.id}
-                className="flex items-center justify-between rounded-card border border-border bg-card px-5 py-4"
+                className="flex items-center justify-between gap-4 rounded-card border border-border bg-card px-5 py-4"
               >
-                <span className="font-medium">{member.name}</span>
+                <span className="flex min-w-0 items-center gap-3">
+                  <Avatar name={member.name} size="sm" />
+                  <span className="truncate font-medium">{member.name}</span>
+                </span>
                 {member.id === team.leader.id && (
                   <Badge variant="secondary">Leader</Badge>
                 )}

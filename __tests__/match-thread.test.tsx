@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MatchThread from "@/pages/matches/[id]";
 
 const fetchMessagesMock = vi.fn();
+const fetchMatchMock = vi.fn();
 const sendMessageMock = vi.fn();
 const subscribeMessagesMock = vi.fn();
 
@@ -16,6 +17,7 @@ vi.mock("@/lib/api", () => ({
   api: () => ({
     matches: {
       fetchMessages: fetchMessagesMock,
+      fetchMatch: fetchMatchMock,
       sendMessage: sendMessageMock,
       subscribeMessages: subscribeMessagesMock,
     },
@@ -58,6 +60,12 @@ describe("Match thread", () => {
     vi.clearAllMocks();
     realtimeCallback = null;
     fetchMessagesMock.mockResolvedValue([]);
+    fetchMatchMock.mockResolvedValue({
+      id: "m1",
+      partnerId: "u-other",
+      partnerName: "Priya Sharma",
+      createdAt: "2026-08-14 12:00:00.000Z",
+    });
     sendMessageMock.mockResolvedValue(makeMessage());
     subscribeMessagesMock.mockImplementation(
       (_matchId: string, cb: (msg: Record<string, unknown>) => void) => {

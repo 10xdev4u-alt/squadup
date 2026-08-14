@@ -22,7 +22,7 @@ function toResource(record: Record<string, unknown>): Resource {
     title: String(record.title),
     uploadedBy: String(record.uploadedBy ?? ""),
     embeddable: Boolean(record.embeddable),
-    createdAt: String(record.createdAt ?? ""),
+    createdAt: String(record.created ?? ""),
   };
 }
 

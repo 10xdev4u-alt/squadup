@@ -29,7 +29,7 @@ function toTicket(record: Record<string, unknown>): MentorTicket {
     status: record.status as TicketStatus,
     assignedMentor:
       record.assignedMentor == null ? null : String(record.assignedMentor),
-    createdAt: String(record.createdAt),
+    createdAt: String(record.created),
   };
 }
 
@@ -43,7 +43,7 @@ function toMessage(record: Record<string, unknown>): TicketMessage {
     senderName: sender?.name ?? "",
     message: String(record.message),
     attachment: record.attachment == null ? null : String(record.attachment),
-    createdAt: String(record.createdAt),
+    createdAt: String(record.created),
   };
 }
 

@@ -27,7 +27,7 @@ function toMatchCard(record: Record<string, unknown>, meId: string): MatchCard {
     id: String(record.id),
     partnerId: String(partner?.id ?? ""),
     partnerName: String(partner?.name ?? "A match"),
-    createdAt: String(record.createdAt),
+    createdAt: String(record.created),
   };
 }
 
@@ -37,7 +37,7 @@ function toMessage(record: Record<string, unknown>): MatchMessage {
     match: String(record.match),
     sender: String(record.sender),
     message: String(record.message),
-    createdAt: String(record.createdAt),
+    createdAt: String(record.created),
   };
 }
 
@@ -62,6 +62,22 @@ export function createMatchesApi(client: PbClient) {
           (a, b) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
+    } catch (err) {
+      throw normalizeError(err);
+    }
+  }
+
+  /** One match with the partner resolved against me — chat header context. */
+  async function fetchMatch(matchId: string): Promise<MatchCard> {
+    try {
+      const meId = client.authStore.record?.id as string | undefined;
+      if (!meId) {
+        throw new Error("Unauthorized");
+      }
+      const record = await matches().getOne(matchId, {
+        expand: "userA,userB",
+      });
+      return toMatchCard(record, meId);
     } catch (err) {
       throw normalizeError(err);
     }
@@ -120,5 +136,11 @@ export function createMatchesApi(client: PbClient) {
     );
   }
 
-  return { fetchMatches, fetchMessages, sendMessage, subscribeMessages };
+  return {
+    fetchMatches,
+    fetchMatch,
+    fetchMessages,
+    sendMessage,
+    subscribeMessages,
+  };
 }
