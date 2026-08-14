@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Avatar from "@/components/avatar";
 import Layout from "@/components/Layout";
 import EmptyState from "@/components/empty-state";
 import { useRequireAuth } from "@/lib/use-require-auth";
 import { api } from "@/lib/api";
+import { timeAgo } from "@/lib/time-ago";
 import type { MatchCard } from "@/lib/api/matches";
 
 export default function Matches() {
@@ -48,10 +50,20 @@ export default function Matches() {
               <li key={card.id}>
                 <Link
                   href={`/matches/${card.id}`}
-                  className="flex items-center justify-between px-5 py-4 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
-                  <span className="font-medium">{card.partnerName}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <Avatar name={card.partnerName} size="md" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium">
+                      {card.partnerName}
+                    </span>
+                    {card.createdAt && (
+                      <span className="block text-xs text-muted-foreground">
+                        Matched {timeAgo(card.createdAt)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-xs font-medium text-primary">
                     Open chat
                   </span>
                 </Link>

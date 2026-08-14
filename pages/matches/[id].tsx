@@ -6,6 +6,8 @@ import { useRequireAuth } from "@/lib/use-require-auth";
 import { api, getApiErrorMessage } from "@/lib/api";
 import { getClient } from "@/lib/api/client";
 import { getCurrentUser } from "@/lib/api/session";
+import Avatar from "@/components/avatar";
+import type { MatchCard } from "@/lib/api/matches";
 import type { MatchMessage } from "@/types/squadup";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +18,7 @@ export default function MatchThread() {
   const meId = getCurrentUser(getClient())?.id ?? "";
 
   const [messages, setMessages] = useState<MatchMessage[]>([]);
+  const [partner, setPartner] = useState<MatchCard | null>(null);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +36,14 @@ export default function MatchThread() {
   useEffect(() => {
     if (!matchId) return;
     let cancelled = false;
+    api()
+      .matches.fetchMatch(matchId)
+      .then((match) => {
+        if (!cancelled) setPartner(match);
+      })
+      .catch(() => {
+        // non-critical — header degrades to "Chat"
+      });
     api()
       .matches.fetchMessages(matchId)
       .then((msgs) => {
@@ -88,8 +99,17 @@ export default function MatchThread() {
   return (
     <Layout>
       <div className="flex h-[calc(100vh-8rem)] flex-col">
-        <header className="flex items-center justify-between border-b border-border pb-4">
-          <h1 className="text-2xl font-bold">Chat</h1>
+        <header className="flex items-center justify-between gap-4 border-b border-border pb-4">
+          <div className="flex min-w-0 items-center gap-3">
+            {partner ? (
+              <Avatar name={partner.partnerName} size="md" />
+            ) : (
+              <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
+            )}
+            <h1 className="truncate text-xl font-bold">
+              {partner ? partner.partnerName : "Chat"}
+            </h1>
+          </div>
           <Link
             href={`/team/new?match=${matchId}`}
             className="rounded-control bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"

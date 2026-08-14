@@ -28,7 +28,7 @@ function toSwipe(record: Record<string, unknown>): Swipe {
     fromUser: String(record.fromUser),
     toUser: String(record.toUser),
     direction: record.direction as SwipeDirection,
-    createdAt: String(record.createdAt),
+    createdAt: String(record.created),
   };
 }
 

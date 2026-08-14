@@ -4,19 +4,11 @@
 // for the active intent, and fires onSwipe(direction) from Skip / Interested.
 // ============================================================================
 
+import Avatar from "@/components/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { DeckCandidate } from "@/lib/matching/deck";
 import type { SwipeDirection } from "@/types/squadup";
 import { cn } from "@/lib/utils";
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 export default function DeckCard({
   candidate,
@@ -41,21 +33,7 @@ export default function DeckCard({
       )}
     >
       <div className="flex items-center gap-4">
-        {candidate.avatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={candidate.avatar}
-            alt=""
-            className="h-14 w-14 rounded-full border border-border bg-surface object-cover"
-          />
-        ) : (
-          <div
-            aria-hidden="true"
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-primary/10 text-base font-semibold text-primary"
-          >
-            {initials(candidate.name)}
-          </div>
-        )}
+        <Avatar name={candidate.name} src={candidate.avatar} size="lg" />
         <div className="min-w-0">
           <h2 className="truncate text-lg font-semibold">{candidate.name}</h2>
           <Badge variant="outline" className="mt-1">

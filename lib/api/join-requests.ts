@@ -31,7 +31,7 @@ function toJoinRequest(record: Record<string, unknown>): JoinRequest {
     roleAppliedFor: record.roleAppliedFor as PrimaryRole,
     message: String(record.message ?? ""),
     status: record.status as JoinRequestStatus,
-    createdAt: String(record.createdAt),
+    createdAt: String(record.created),
   };
 }
 
