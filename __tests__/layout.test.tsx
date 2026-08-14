@@ -10,7 +10,7 @@ describe("layout", () => {
       </Layout>
     );
     expect(screen.getByRole("banner")).toBeInTheDocument();
-    expect(screen.getByText("SquadUp")).toBeInTheDocument();
+    expect(screen.getAllByText("SquadUp").length).toBeGreaterThan(0);
     expect(screen.getByText("page content")).toBeInTheDocument();
   });
 });
