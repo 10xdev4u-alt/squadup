@@ -205,3 +205,57 @@ describe("isTeamMember", () => {
     expect(isTeamMember({ members: ["u-a"] }, null)).toBe(false);
   });
 });
+
+// Resource link detection (§4C — universal embeds).
+import { describe, it, expect } from "vitest";
+import { detectResourceType } from "./domain.js";
+
+describe("detectResourceType", () => {
+  it("detects figma share links as embeddable", () => {
+    expect(detectResourceType("https://www.figma.com/file/abc/Design")).toEqual(
+      { type: "figma", embeddable: true }
+    );
+  });
+
+  it("detects excalidraw links as embeddable", () => {
+    expect(detectResourceType("https://excalidraw.com/#json=abc")).toEqual({
+      type: "excalidraw",
+      embeddable: true,
+    });
+  });
+
+  it("detects canva as a non-embeddable link card", () => {
+    expect(detectResourceType("https://www.canva.com/design/DAG/")).toEqual({
+      type: "canva",
+      embeddable: false,
+    });
+  });
+
+  it("detects google drive and github", () => {
+    expect(detectResourceType("https://drive.google.com/file/d/1x")).toEqual({
+      type: "drive",
+      embeddable: false,
+    });
+    expect(
+      detectResourceType("https://github.com/10xdev4u-alt/squadup")
+    ).toEqual({ type: "github", embeddable: false });
+  });
+
+  it("flags unknown domains as other", () => {
+    expect(detectResourceType("https://notion.so/page")).toEqual({
+      type: "other",
+      embeddable: false,
+    });
+  });
+
+  it("rejects lookalike domains (§4C spoof guard)", () => {
+    expect(detectResourceType("https://figma.com.evil.example/x")).toEqual({
+      type: "other",
+      embeddable: false,
+    });
+    expect(detectResourceType("https://canva.com@evil.example/x")).toEqual({
+      type: "other",
+      embeddable: false,
+    });
+  });
+});

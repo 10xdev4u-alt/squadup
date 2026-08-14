@@ -17,6 +17,7 @@ const {
   TEAM_DEADLINE_HOURS,
   deadlineFor,
   removedMembers,
+  detectResourceType,
 
   orderMatchPair,
 } = require("./domain.js");
@@ -143,6 +144,23 @@ async function ensureMembersAreFree(dao, members, excludeTeamId) {
 onRecordBeforeCreateRequest(async (e) => {
   await ensureMembersAreFree(e.app.dao(), e.record.get("members"), null);
 }, "teams");
+
+// resources: workspace access + server-owned fields (§4C, §8). Only team
+// members may add links; type/embeddable are derived from the URL and
+// uploadedBy is always the requester — never client-supplied.
+onRecordBeforeCreateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const userId = e.request.auth && e.request.auth.id;
+  const team = await dao.findRecordById("teams", rec.get("team"));
+  if (!userId || !isTeamMember({ members: team.get("members") }, userId)) {
+    throw new Error(NOT_TEAM_MEMBER_MSG);
+  }
+  const detected = detectResourceType(String(rec.get("url") || ""));
+  rec.set("type", detected.type);
+  rec.set("embeddable", detected.embeddable);
+  rec.set("uploadedBy", userId);
+}, "resources");
 
 onRecordBeforeUpdateRequest(async (e) => {
   await ensureMembersAreFree(e.app.dao(), e.record.get("members"), e.record.id);
