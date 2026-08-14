@@ -90,7 +90,7 @@ describe("join requests api", () => {
       1,
       50,
       expect.objectContaining({
-        filter: "team = 't1' && status = 'pending'",
+        filter: "team = \"t1\" && status = 'pending'",
       })
     );
     expect(requests[0]?.roleAppliedFor).toBe("Developer");

@@ -181,7 +181,7 @@ describe("teams api — fetchTeamCards", () => {
       12,
       expect.objectContaining({
         filter:
-          "status = 'open' && rolesNeeded != null && rolesNeeded ?~ 'Designer'",
+          "status = 'open' && rolesNeeded != null && rolesNeeded ?~ \"Designer\"",
       })
     );
   });

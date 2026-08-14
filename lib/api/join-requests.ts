@@ -66,7 +66,7 @@ export function createJoinRequestsApi(client: PbClient) {
   ): Promise<JoinRequest[]> {
     try {
       const filter = options.teamId
-        ? `team = '${options.teamId}' && status = 'pending'`
+        ? `team = ${pbEscape(options.teamId)} && status = 'pending'`
         : "applicant = @request.auth.id";
       const list = await collection().getList(1, 50, {
         sort: "-created",

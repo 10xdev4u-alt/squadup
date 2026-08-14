@@ -208,7 +208,7 @@ export function createTeamsApi(client: PbClient) {
       const { page: p, perPage: pp } = clampPageParams(page, perPage);
       let filter = DIRECTORY_FILTER;
       if (filters?.role) {
-        filter += ` && rolesNeeded ?~ '${filters.role}'`;
+        filter += ` && rolesNeeded ?~ ${pbEscape(filters.role)}`;
       }
       const result = await collection().getList(p, pp, {
         sort: "-created",
