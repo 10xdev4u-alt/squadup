@@ -13,6 +13,7 @@ import { createUsersApi } from "@/lib/api/users";
 import { createRealtimeApi } from "@/lib/api/realtime";
 import { createMatchesApi } from "@/lib/api/matches";
 import { createJoinRequestsApi } from "@/lib/api/join-requests";
+import { createTasksApi } from "@/lib/api/tasks";
 
 export function api() {
   const client = getClient();
@@ -25,6 +26,7 @@ export function api() {
     realtime: createRealtimeApi(client),
     matches: createMatchesApi(client),
     joinRequests: createJoinRequestsApi(client),
+    tasks: createTasksApi(client),
   };
 }
 
@@ -47,6 +49,7 @@ export type {
   RequestToJoinInput,
   FetchRequestsOptions,
 } from "@/lib/api/join-requests";
+export type { NewTask } from "@/lib/api/tasks";
 export {
   getCurrentUser,
   isAuthenticated,
