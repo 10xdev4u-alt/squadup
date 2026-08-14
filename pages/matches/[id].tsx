@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import Layout from "@/components/Layout";
@@ -77,8 +78,14 @@ export default function MatchThread() {
   return (
     <Layout>
       <div className="flex h-[calc(100vh-8rem)] flex-col">
-        <header className="border-b border-border pb-4">
+        <header className="flex items-center justify-between border-b border-border pb-4">
           <h1 className="text-2xl font-bold">Chat</h1>
+          <Link
+            href="/team/new"
+            className="rounded-control bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          >
+            Form a Team
+          </Link>
         </header>
 
         {error && (
