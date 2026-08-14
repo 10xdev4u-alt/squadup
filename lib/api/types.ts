@@ -6,6 +6,15 @@
 
 import type { RawListResult } from "@/lib/api/pagination";
 
+/** Unsubscribe handle returned by realtime subscriptions. */
+export type UnsubscribeFunc = () => Promise<void>;
+
+/** Normalized realtime event — the SDK's RecordSubscription, narrowed. */
+export interface SubscriptionEvent {
+  action: string;
+  record: Record<string, unknown>;
+}
+
 export interface PbRecordService {
   getOne(
     id: string,
@@ -36,6 +45,14 @@ export interface PbRecordService {
     password: string,
     options?: Record<string, unknown>
   ): Promise<{ token: string; record: Record<string, unknown> }>;
+  /** Realtime: subscribe to collection events (normalized to SubscriptionEvent). */
+  subscribe(
+    topic: string,
+    callback: (event: SubscriptionEvent) => void,
+    options?: Record<string, unknown>
+  ): Promise<UnsubscribeFunc>;
+  /** Realtime: stop listening (optionally for one topic). */
+  unsubscribe(topic?: string): Promise<void>;
 }
 
 /** Minimal auth session surface — matches the SDK's BaseAuthStore shape. */
