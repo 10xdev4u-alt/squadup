@@ -12,6 +12,7 @@ import { createAuthApi } from "@/lib/api/auth";
 import { createUsersApi } from "@/lib/api/users";
 import { createRealtimeApi } from "@/lib/api/realtime";
 import { createMatchesApi } from "@/lib/api/matches";
+import { createJoinRequestsApi } from "@/lib/api/join-requests";
 
 export function api() {
   const client = getClient();
@@ -23,6 +24,7 @@ export function api() {
     tickets: createTicketsApi(client),
     realtime: createRealtimeApi(client),
     matches: createMatchesApi(client),
+    joinRequests: createJoinRequestsApi(client),
   };
 }
 
@@ -41,6 +43,10 @@ export type { OtpSession, OtpRequest } from "@/lib/api/auth";
 export type { ProfileUpdate } from "@/lib/api/users";
 export type { MatchEvent } from "@/lib/api/realtime";
 export type { MatchCard } from "@/lib/api/matches";
+export type {
+  RequestToJoinInput,
+  FetchRequestsOptions,
+} from "@/lib/api/join-requests";
 export {
   getCurrentUser,
   isAuthenticated,
