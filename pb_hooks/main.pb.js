@@ -18,6 +18,9 @@ const {
   deadlineFor,
   removedMembers,
   detectResourceType,
+  isMentor,
+  canViewTicket,
+  canManageTicket,
 
   orderMatchPair,
 } = require("./domain.js");
@@ -380,3 +383,37 @@ onRecordBeforeUpdateRequest(async (e) => {
     await dao.save(user);
   }
 }, "teams");
+
+// mentorship (§4D): tickets are member-or-mentor scoped; status transitions
+// are mentor-only; message senders are always the requester.
+const MENTOR_ONLY_MSG = "Only mentors can update ticket status.";
+const NO_TICKET_ACCESS_MSG = "You do not have access to this ticket.";
+
+onRecordBeforeCreateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const user = e.request.auth;
+  const team = await dao.findRecordById("teams", rec.get("team"));
+  if (!user || !canViewTicket(user, team.get("members"), user.id)) {
+    throw new Error(NO_TICKET_ACCESS_MSG);
+  }
+  if (!rec.get("status")) rec.set("status", "open");
+}, "mentor_tickets");
+
+onRecordBeforeUpdateRequest(async (e) => {
+  if (!canManageTicket(e.request.auth)) {
+    throw new Error(MENTOR_ONLY_MSG);
+  }
+}, "mentor_tickets");
+
+onRecordBeforeCreateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const user = e.request.auth;
+  const ticket = await dao.findRecordById("mentor_tickets", rec.get("ticket"));
+  const team = await dao.findRecordById("teams", ticket.get("team"));
+  if (!user || !canViewTicket(user, team.get("members"), user.id)) {
+    throw new Error(NO_TICKET_ACCESS_MSG);
+  }
+  rec.set("sender", user.id);
+}, "ticket_messages");
