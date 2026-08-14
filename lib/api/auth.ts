@@ -34,6 +34,7 @@ export function toUser(record: Record<string, unknown>): User {
     primaryRole: record.primaryRole as User["primaryRole"],
     status: (record.status as User["status"]) ?? "solo",
     lookingFor: String(record.lookingFor ?? ""),
+    mentor: record.mentor === true,
   };
 }
 

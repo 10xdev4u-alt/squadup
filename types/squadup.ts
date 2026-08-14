@@ -82,6 +82,8 @@ export interface User {
   primaryRole: PrimaryRole;
   status: UserStatus;
   lookingFor: string;
+  /** Mentor flag (I24 migration) — gates mentor-only UI like ticket status. */
+  mentor: boolean;
 }
 
 export interface Swipe {
@@ -171,6 +173,8 @@ export interface TicketMessage {
   id: string;
   ticket: string;
   sender: string;
+  /** Display name from the expanded sender record ("" when unknown). */
+  senderName: string;
   message: string;
   attachment: string | null;
   createdAt: string;

@@ -22,6 +22,7 @@ const authRecord = {
   primaryRole: "Developer",
   status: "solo",
   lookingFor: "",
+  mentor: false,
 };
 
 describe("session helpers", () => {
@@ -42,6 +43,7 @@ describe("session helpers", () => {
       primaryRole: "Developer",
       status: "solo",
       lookingFor: "",
+      mentor: false,
     });
   });
 

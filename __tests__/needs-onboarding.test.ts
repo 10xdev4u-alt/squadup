@@ -14,6 +14,7 @@ function makeUser(overrides: Partial<User> = {}): User {
     primaryRole: "Developer",
     status: "solo",
     lookingFor: "",
+    mentor: false,
     ...overrides,
   };
 }
