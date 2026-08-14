@@ -74,3 +74,13 @@ export function findUserTeam(teams, userId) {
 export function orderMatchPair(a, b) {
   return a < b ? [a, b] : [b, a];
 }
+
+/**
+ * True when the user is one of the two participants of the match.
+ * Backs the chat security rule (§2): only the two matched users may read
+ * or write a conversation. `match` is a plain { userA, userB } shape.
+ */
+export function isMatchMember(match, userId) {
+  if (!match || !userId) return false;
+  return match.userA === userId || match.userB === userId;
+}

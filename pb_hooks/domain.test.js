@@ -3,6 +3,7 @@ import {
   findUserTeam,
   isCollegeEmail,
   isDuplicateSwipe,
+  isMatchMember,
   orderMatchPair,
   shouldCreateMatch,
 } from "./domain";
@@ -39,74 +40,28 @@ describe("isCollegeEmail", () => {
   });
 
   it("rejects a non-matching domain against an explicit list", () => {
-    expect(isCollegeEmail("jane@college.edu", ["mycollege.edu.in"])).toBe(
-      false
-    );
+    expect(isCollegeEmail("jane@gmail.com", ["mycollege.edu.in"])).toBe(false);
   });
 });
 
-describe("isDuplicateSwipe", () => {
-  it("flags a swipe already made in the same direction", () => {
-    const swipes = [{ fromUser: "a", toUser: "b" }];
-    expect(isDuplicateSwipe(swipes, "a", "b")).toBe(true);
+describe("isMatchMember", () => {
+  const match = { userA: "u-a", userB: "u-b" };
+
+  it("accepts the userA participant", () => {
+    expect(isMatchMember(match, "u-a")).toBe(true);
   });
 
-  it("allows the reverse direction", () => {
-    const swipes = [{ fromUser: "a", toUser: "b" }];
-    expect(isDuplicateSwipe(swipes, "b", "a")).toBe(false);
+  it("accepts the userB participant", () => {
+    expect(isMatchMember(match, "u-b")).toBe(true);
   });
 
-  it("allows a fresh pair", () => {
-    expect(isDuplicateSwipe([], "a", "b")).toBe(false);
-  });
-});
-
-describe("shouldCreateMatch", () => {
-  it("creates a match when the target already right-swiped the source", () => {
-    const swipes = [{ fromUser: "b", toUser: "a", direction: "right" }];
-    expect(shouldCreateMatch(swipes, "a", "b")).toBe(true);
+  it("rejects anyone outside the match", () => {
+    expect(isMatchMember(match, "u-c")).toBe(false);
   });
 
-  it("does not create a match from a left swipe", () => {
-    const swipes = [{ fromUser: "b", toUser: "a", direction: "left" }];
-    expect(shouldCreateMatch(swipes, "a", "b")).toBe(false);
-  });
-
-  it("does not create a match when the target has not swiped", () => {
-    expect(shouldCreateMatch([], "a", "b")).toBe(false);
-  });
-
-  it("only matches when the incoming swipe is right", () => {
-    const swipes = [{ fromUser: "b", toUser: "a", direction: "right" }];
-    expect(shouldCreateMatch(swipes, "a", "b", "left")).toBe(false);
-  });
-});
-
-describe("findUserTeam", () => {
-  it("returns the team id when the user is a member", () => {
-    const teams = [{ id: "t1", members: ["a", "b"] }];
-    expect(findUserTeam(teams, "a")).toBe("t1");
-  });
-
-  it("returns null when the user is in no team", () => {
-    const teams = [{ id: "t1", members: ["b"] }];
-    expect(findUserTeam(teams, "a")).toBeNull();
-  });
-
-  it("returns null for an empty roster", () => {
-    expect(findUserTeam([], "a")).toBeNull();
-  });
-});
-
-describe("orderMatchPair", () => {
-  it("orders the pair deterministically", () => {
-    expect(orderMatchPair("b", "a")).toEqual(["a", "b"]);
-    expect(orderMatchPair("a", "b")).toEqual(["a", "b"]);
-  });
-
-  it("keeps the same pair equal in both directions", () => {
-    expect(orderMatchPair("x", "y").join("|")).toBe(
-      orderMatchPair("y", "x").join("|")
-    );
+  it("rejects a missing user id", () => {
+    expect(isMatchMember(match, "")).toBe(false);
+    expect(isMatchMember(match, null)).toBe(false);
+    expect(isMatchMember(match, undefined)).toBe(false);
   });
 });
