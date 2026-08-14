@@ -455,10 +455,32 @@ migrate(
       ],
     });
     app.save(ticketMessages);
+
+    // §12 beta metrics — anonymous event log (no user ids, no emails).
+    // Written by hooks in main.pb.js; read by the admin analytics page.
+    const metricsEvents = new Collection({
+      type: "base",
+      name: "metrics_events",
+      // Admin-only read; nothing ever writes via the API (hooks write it).
+      listRule: "@request.auth.admin = true",
+      viewRule: "@request.auth.admin = true",
+      fields: [
+        {
+          type: "select",
+          name: "action",
+          values: ["team_created", "ticket_resolved", "task_final_pitch"],
+          maxSelect: 1,
+          required: true,
+        },
+        { type: "date", name: "at", required: true },
+      ],
+    });
+    app.save(metricsEvents);
   },
   (app) => {
     // down — reverse creation order
     const names = [
+      "metrics_events",
       "ticket_messages",
       "mentor_tickets",
       "resources",
