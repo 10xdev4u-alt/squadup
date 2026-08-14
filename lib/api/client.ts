@@ -50,6 +50,11 @@ function toRecordService(service: RecordService): PbRecordService {
 export function getClient(): PbClient & { baseURL: string } {
   if (!instance) {
     instance = new Client(process.env.NEXT_PUBLIC_PB_URL ?? DEFAULT_PB_URL);
+    // Two components can fire identical requests concurrently (e.g. the home
+    // workspace card and the nav "My Team" link both fetch the user's team).
+    // The SDK's default auto-cancellation aborts one of them; disable it so
+    // both resolve independently.
+    instance.autoCancellation(false);
   }
   if (!adapter) {
     const sdk = instance;

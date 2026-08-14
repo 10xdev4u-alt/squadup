@@ -3,8 +3,8 @@ import { isOtpEmailAllowed } from "@/pb_hooks/domain";
 
 describe("isOtpEmailAllowed", () => {
   it("allows college-domain emails even without an allowlist", () => {
-    expect(isOtpEmailAllowed("jane@college.edu", [])).toBe(true);
-    expect(isOtpEmailAllowed("jane@eng.college.edu", [])).toBe(true);
+    expect(isOtpEmailAllowed("jane@svce.ac.in", [])).toBe(true);
+    expect(isOtpEmailAllowed("jane@eng.svce.ac.in", [])).toBe(true);
   });
 
   it("allows an exact allowlisted address", () => {
@@ -24,7 +24,7 @@ describe("isOtpEmailAllowed", () => {
     expect(isOtpEmailAllowed("jane@gmail.com", allowlist)).toBe(false);
     expect(isOtpEmailAllowed("someone@college.com", allowlist)).toBe(false);
     // lookalike domain must not slip through
-    expect(isOtpEmailAllowed("jane@college.edu.evil.com", allowlist)).toBe(
+    expect(isOtpEmailAllowed("jane@svce.ac.in.evil.com", allowlist)).toBe(
       false
     );
   });

@@ -10,6 +10,10 @@ import { cn } from "@/lib/utils";
 export default function FormTeam() {
   useRequireAuth();
   const router = useRouter();
+  // When reached from a match chat (Form a Team), the partner joins as a
+  // member — pass the match id through to the server (§2).
+  const matchId =
+    typeof router.query.match === "string" ? router.query.match : "";
 
   const [statements, setStatements] = useState<ProblemStatement[]>([]);
   const [name, setName] = useState("");
@@ -57,6 +61,7 @@ export default function FormTeam() {
         name: name.trim(),
         problemStatement: problemStatement || undefined,
         rolesNeeded: roles,
+        match: matchId || undefined,
       });
       await router.push(`/team/${team.id}`);
     } catch (err) {

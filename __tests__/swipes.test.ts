@@ -84,7 +84,7 @@ describe("swipes api — fetchDeck", () => {
     expect(usersService.getList).toHaveBeenCalledWith(
       1,
       200,
-      expect.objectContaining({ filter: "status = 'solo'" })
+      expect.objectContaining({ filter: "status = 'solo' && name != ''" })
     );
     expect(swipesService.getList).toHaveBeenCalledWith(
       1,

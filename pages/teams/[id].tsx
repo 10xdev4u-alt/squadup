@@ -35,6 +35,12 @@ export default function TeamDetailPage() {
   const isLeader = team ? team.leader.id === meId : false;
   const isMember = team ? team.members.some((m) => m.id === meId) : false;
 
+  const loadTeam = useCallback(async () => {
+    const detail = await api().teams.fetchTeamDetail(teamId);
+    setTeam(detail);
+    setError(null);
+  }, [teamId]);
+
   const loadRequests = useCallback(async () => {
     try {
       const [pending, mine] = await Promise.all([
@@ -77,11 +83,12 @@ export default function TeamDetailPage() {
       .joinRequests.subscribeMyRequests((request) => {
         if (!active) return;
         if (request.team === teamId) {
-          setDecision(
-            request.status === "accepted"
-              ? "You were accepted — welcome to the team!"
-              : "Your request was declined."
-          );
+          if (request.status === "accepted") {
+            // §5 Flow 3 — accepted applicants land in the workspace.
+            void router.push(`/team/${request.team}`);
+            return;
+          }
+          setDecision("Your request was declined.");
           setMyRequest(request);
         }
       })
@@ -123,6 +130,10 @@ export default function TeamDetailPage() {
     try {
       await api().joinRequests.decideRequest(requestId, decisionValue);
       setRequests((current) => current.filter((r) => r.id !== requestId));
+      if (decisionValue === "accepted") {
+        // Member list is stale until we refetch — server already added them.
+        await loadTeam();
+      }
     } catch (err) {
       setActionError(getApiErrorMessage(err));
     }

@@ -97,7 +97,12 @@ type _newJoinKeys = Assert<
 type _teamCardKeys = Assert<
   AssertEqual<
     Keys<TeamCard>,
-    "id" | "name" | "problemStatement" | "status" | "rolesNeeded"
+    | "id"
+    | "name"
+    | "problemStatement"
+    | "status"
+    | "rolesNeeded"
+    | "memberCount"
   >
 >;
 
