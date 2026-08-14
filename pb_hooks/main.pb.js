@@ -22,6 +22,7 @@ const {
   canViewTicket,
   canManageTicket,
   canModifyPrivilege,
+  toMetricEvent,
 
   orderMatchPair,
 } = require("./domain.js");
@@ -443,3 +444,38 @@ onRecordBeforeCreateRequest(async (e) => {
   }
   rec.set("sender", user.id);
 }, "ticket_messages");
+
+// §12 beta metrics — anonymous event log (no user ids, no emails). Hooks
+// write metrics_events records only for the tracked actions; failures are
+// swallowed so the write path is never broken by analytics.
+async function recordMetric(app, event) {
+  if (!event) return;
+  try {
+    const record = new Record(app.findCollectionByNameOrId("metrics_events"));
+    record.set("action", event.action);
+    record.set("at", event.at);
+    await app.save(record);
+  } catch {
+    // metrics must never break the write path
+  }
+}
+
+onRecordAfterCreateRequest(async (e) => {
+  await recordMetric(e.app, toMetricEvent("teams", "create", {}));
+}, "teams");
+
+onRecordAfterUpdateRequest(async (e) => {
+  await recordMetric(
+    e.app,
+    toMetricEvent("mentor_tickets", "update", {
+      status: e.record.get("status"),
+    })
+  );
+}, "mentor_tickets");
+
+onRecordAfterUpdateRequest(async (e) => {
+  await recordMetric(
+    e.app,
+    toMetricEvent("tasks", "update", { status: e.record.get("status") })
+  );
+}, "tasks");
