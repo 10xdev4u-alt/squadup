@@ -9,6 +9,7 @@
 import type { Task, TaskStatus } from "@/types/squadup";
 import type { PbClient, UnsubscribeFunc } from "@/lib/api/types";
 import { normalizeError } from "@/lib/api/error";
+import { pbEscape } from "./filter";
 
 function toTask(record: Record<string, unknown>): Task {
   return {
@@ -36,7 +37,7 @@ export function createTasksApi(client: PbClient) {
   async function fetchTasks(teamId: string): Promise<Task[]> {
     try {
       const list = await tasks().getList(1, 50, {
-        filter: `team = '${teamId}'`,
+        filter: `team = ${pbEscape(teamId)}`,
         sort: "created",
       });
       return list.items.map((r) => toTask(r as Record<string, unknown>));
@@ -103,7 +104,7 @@ export function createTasksApi(client: PbClient) {
         seen.add(task.id);
         onTask(task);
       },
-      { filter: `team = '${teamId}'` }
+      { filter: `team = ${pbEscape(teamId)}` }
     );
   }
 

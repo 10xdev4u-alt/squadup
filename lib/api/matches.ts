@@ -8,6 +8,7 @@
 import type { MatchMessage } from "@/types/squadup";
 import type { PbClient, UnsubscribeFunc } from "@/lib/api/types";
 import { normalizeError } from "@/lib/api/error";
+import { pbEscape } from "./filter";
 
 /** A match in the inbox — the partner resolved against the current user. */
 export interface MatchCard {
@@ -87,7 +88,7 @@ export function createMatchesApi(client: PbClient) {
   async function fetchMessages(matchId: string): Promise<MatchMessage[]> {
     try {
       const list = await messages().getList(1, 200, {
-        filter: `match = '${matchId}'`,
+        filter: `match = ${pbEscape(matchId)}`,
         sort: "created",
       });
       return list.items.map((r) => toMessage(r as Record<string, unknown>));
@@ -132,7 +133,7 @@ export function createMatchesApi(client: PbClient) {
         seen.add(id);
         onMessage(toMessage(event.record));
       },
-      { filter: `match = '${matchId}'` }
+      { filter: `match = ${pbEscape(matchId)}` }
     );
   }
 

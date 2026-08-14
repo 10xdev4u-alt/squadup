@@ -15,6 +15,7 @@ import {
   type Paginated,
 } from "@/lib/api/pagination";
 import { normalizeError } from "@/lib/api/error";
+import { pbEscape } from "./filter";
 
 export interface CreateTicketInput {
   team: string;
@@ -166,7 +167,7 @@ export function createTicketsApi(client: PbClient) {
         seen.add(message.id);
         onMessage(message);
       },
-      { filter: `ticket = '${ticketId}'` }
+      { filter: `ticket = ${pbEscape(ticketId)}` }
     );
   }
 

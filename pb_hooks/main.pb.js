@@ -97,7 +97,6 @@ onRecordRequestOTPRequest((e) => {
     .map((s) => s.trim())
     .filter(Boolean);
   const email = String(e.requestInfo().body.email || "").toLowerCase();
-  console.log("DEBUG-OTP: email=" + email + " code=" + e.password);
   if (!isOtpEmailAllowed(email, allowlist)) {
     throw new Error(MSG.OTP_GATE);
   }
@@ -150,47 +149,55 @@ onRecordCreateRequest((e) => {
   const toUser = rec.get("toUser");
   const direction = rec.get("direction");
 
-  const existing = app.findRecordsByFilter(
-    "swipes",
-    "fromUser = {:from} && toUser = {:to}",
-    "id",
-    1,
-    0,
-    { from: fromUser, to: toUser }
-  );
-  if (
-    isDuplicateSwipe(
-      existing.map((r) => ({
-        fromUser: r.get("fromUser"),
-        toUser: r.get("toUser"),
-      })),
-      fromUser,
-      toUser
-    )
-  ) {
-    throw new Error(MSG.DUPLICATE_SWIPE);
+  // Self-swipe guard — you can't match with yourself (§5.11).
+  if (!toUser || fromUser === toUser) {
+    throw new Error(MSG.SELF_SWIPE);
   }
 
-  const reverse = app.findRecordsByFilter(
-    "swipes",
-    "fromUser = {:from} && toUser = {:to}",
-    "id",
-    1,
-    0,
-    { from: toUser, to: fromUser }
-  );
-  const makeMatch = shouldCreateMatch(
-    reverse.map((r) => ({
-      fromUser: r.get("fromUser"),
-      toUser: r.get("toUser"),
-      direction: r.get("direction"),
-    })),
-    fromUser,
-    toUser,
-    direction
-  );
-
+  // Duplicate + reverse lookups live INSIDE the transaction so a concurrent
+  // request cannot slip a duplicate between the check and the save — the
+  // unique index stays the backstop, but the user gets the clean error.
   app.runInTransaction((txApp) => {
+    const existing = txApp.findRecordsByFilter(
+      "swipes",
+      "fromUser = {:from} && toUser = {:to}",
+      "id",
+      1,
+      0,
+      { from: fromUser, to: toUser }
+    );
+    if (
+      isDuplicateSwipe(
+        existing.map((r) => ({
+          fromUser: r.get("fromUser"),
+          toUser: r.get("toUser"),
+        })),
+        fromUser,
+        toUser
+      )
+    ) {
+      throw new Error(MSG.DUPLICATE_SWIPE);
+    }
+
+    const reverse = txApp.findRecordsByFilter(
+      "swipes",
+      "fromUser = {:from} && toUser = {:to}",
+      "id",
+      1,
+      0,
+      { from: toUser, to: fromUser }
+    );
+    const makeMatch = shouldCreateMatch(
+      reverse.map((r) => ({
+        fromUser: r.get("fromUser"),
+        toUser: r.get("toUser"),
+        direction: r.get("direction"),
+      })),
+      fromUser,
+      toUser,
+      direction
+    );
+
     txApp.save(rec);
     if (makeMatch) {
       const [userA, userB] = orderMatchPair(fromUser, toUser);
@@ -243,25 +250,19 @@ onRecordUpdateRequest((e) => {
 // single-active-team rule for the creator (§2). The creator leaves the deck
 // immediately (status -> in_team, which the deck's status='solo' filter uses).
 onRecordCreateRequest((e) => {
-  const {
-    findUserTeam,
-    generateInviteCode,
-    deadlineFor,
-    matchPartner,
-  } = require(__hooks + "/domain.js");
-  const { MSG } = require(__hooks + "/hooks-common.js");
+  const { generateInviteCode, deadlineFor, matchPartner } = require(
+    __hooks + "/domain.js"
+  );
+  const { MSG, userHasTeam } = require(__hooks + "/hooks-common.js");
   const app = e.app;
   const rec = e.record;
   const leaderId = e.auth && e.auth.id;
   if (!leaderId) {
     throw new Error(MSG.TEAM_AUTH);
   }
-  const allTeams = app.findRecordsByFilter("teams", "id != ''", "id", 1000, 0);
-  const plainTeams = allTeams.map((t) => ({
-    id: t.id,
-    members: t.get("members") || [],
-  }));
-  if (findUserTeam(plainTeams, leaderId)) {
+  // Per-user membership query instead of a full-table scan — the check
+  // stays correct past 1000 teams (§3.5).
+  if (userHasTeam(e.app, leaderId, null)) {
     throw new Error(MSG.SINGLE_TEAM);
   }
 
@@ -282,8 +283,17 @@ onRecordCreateRequest((e) => {
       { userA: match.get("userA"), userB: match.get("userB") },
       leaderId
     );
+    // The partner must be team-free too — forming a team must never drop
+    // them into a second team silently (§3.3).
+    if (partnerId && userHasTeam(e.app, partnerId, null)) {
+      throw new Error(MSG.SINGLE_TEAM);
+    }
     if (partnerId) {
       rec.set("members", [leaderId, partnerId]);
+      // The match that produced this team is spent — mark it so stale
+      // "active" matches stop accumulating (§5.12).
+      match.set("status", "converted_to_team");
+      app.save(match);
     }
   }
   const partner = partnerId ? app.findRecordById("users", partnerId) : null;
@@ -378,10 +388,8 @@ onRecordCreateRequest((e) => {
 // join_requests: creating one derives status server-side and enforces the
 // single-team, duplicate, and self-join guards (§2 Mode 2).
 onRecordCreateRequest((e) => {
-  const { isSelfJoin, findUserTeam, hasPendingRequest } = require(
-    __hooks + "/domain.js"
-  );
-  const { MSG } = require(__hooks + "/hooks-common.js");
+  const { isSelfJoin, hasPendingRequest } = require(__hooks + "/domain.js");
+  const { MSG, userHasTeam } = require(__hooks + "/hooks-common.js");
   const app = e.app;
   const rec = e.record;
   const applicantId = e.auth && e.auth.id;
@@ -397,12 +405,8 @@ onRecordCreateRequest((e) => {
     throw new Error(MSG.TEAM_FULL);
   }
 
-  const allTeams = app.findRecordsByFilter("teams", "id != ''", "id", 1000, 0);
-  const plainTeams = allTeams.map((t) => ({
-    id: t.id,
-    members: t.get("members") || [],
-  }));
-  if (findUserTeam(plainTeams, applicantId)) {
+  // Per-user membership query instead of a full-table scan (§3.5).
+  if (userHasTeam(e.app, applicantId, null)) {
     throw new Error(MSG.ALREADY_IN_TEAM);
   }
 

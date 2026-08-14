@@ -8,6 +8,7 @@
 import type { TeamMessage } from "@/types/squadup";
 import type { PbClient, UnsubscribeFunc } from "@/lib/api/types";
 import { normalizeError } from "@/lib/api/error";
+import { pbEscape } from "./filter";
 
 function toMessage(record: Record<string, unknown>): TeamMessage {
   return {
@@ -26,7 +27,7 @@ export function createTeamMessagesApi(client: PbClient) {
   async function fetchMessages(teamId: string): Promise<TeamMessage[]> {
     try {
       const list = await messages().getList(1, 200, {
-        filter: `team = '${teamId}'`,
+        filter: `team = ${pbEscape(teamId)}`,
         sort: "created",
       });
       return list.items.map((r) => toMessage(r as Record<string, unknown>));
@@ -71,7 +72,7 @@ export function createTeamMessagesApi(client: PbClient) {
         seen.add(id);
         onMessage(toMessage(event.record));
       },
-      { filter: `team = '${teamId}'` }
+      { filter: `team = ${pbEscape(teamId)}` }
     );
   }
 

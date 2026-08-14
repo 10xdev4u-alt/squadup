@@ -253,6 +253,7 @@ export default function ResourcesPage() {
                   <iframe
                     title={resource.title}
                     src={resource.url}
+                    sandbox="allow-scripts allow-same-origin"
                     className="mt-3 h-96 w-full rounded-control border border-border bg-background"
                     loading="lazy"
                   />

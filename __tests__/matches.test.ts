@@ -200,7 +200,7 @@ describe("matches api — messages", () => {
     expect(messagesService.getList).toHaveBeenCalledWith(
       1,
       200,
-      expect.objectContaining({ filter: "match = 'm1'" })
+      expect.objectContaining({ filter: 'match = "m1"' })
     );
     expect(messages.map((m) => m.id)).toEqual(["msg1", "msg2"]);
   });
@@ -239,7 +239,7 @@ describe("matches api — subscribeMessages", () => {
     expect(service.subscribe).toHaveBeenCalledWith(
       "*",
       expect.any(Function),
-      expect.objectContaining({ filter: "match = 'm1'" })
+      expect.objectContaining({ filter: 'match = "m1"' })
     );
   });
 

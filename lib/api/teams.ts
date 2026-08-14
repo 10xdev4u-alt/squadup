@@ -18,6 +18,7 @@ import {
   type Paginated,
 } from "@/lib/api/pagination";
 import { normalizeError } from "@/lib/api/error";
+import { pbEscape } from "./filter";
 
 /**
  * Fields the client may send when creating a team.
@@ -189,7 +190,7 @@ export function createTeamsApi(client: PbClient) {
         return null;
       }
       const result = await collection().getList(1, 1, {
-        filter: `members ?~ '${meId}'`,
+        filter: `members ?~ ${pbEscape(meId)}`,
       });
       const record = result.items[0] as Record<string, unknown> | undefined;
       return record ? toTeamCard(record) : null;
@@ -207,7 +208,7 @@ export function createTeamsApi(client: PbClient) {
       const { page: p, perPage: pp } = clampPageParams(page, perPage);
       let filter = DIRECTORY_FILTER;
       if (filters?.role) {
-        filter += ` && rolesNeeded ?~ '${filters.role}'`;
+        filter += ` && rolesNeeded ?~ ${pbEscape(filters.role)}`;
       }
       const result = await collection().getList(p, pp, {
         sort: "-created",
@@ -228,7 +229,7 @@ export function createTeamsApi(client: PbClient) {
   async function fetchTeamByInvite(code: string): Promise<TeamCard | null> {
     try {
       const result = await collection().getList(1, 1, {
-        filter: `inviteCode = '${code}'`,
+        filter: `inviteCode = ${pbEscape(code)}`,
         expand: "members",
       });
       const first = result.items[0] as Record<string, unknown> | undefined;

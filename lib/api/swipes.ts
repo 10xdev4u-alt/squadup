@@ -11,6 +11,7 @@ import type { Swipe, SwipeDirection } from "@/types/squadup";
 import type { PbClient } from "@/lib/api/types";
 import { normalizeError } from "@/lib/api/error";
 import { toUser } from "@/lib/api/auth";
+import { pbEscape } from "./filter";
 import {
   buildDeck,
   type DeckCandidate,
@@ -73,7 +74,9 @@ export function createSwipesApi(client: PbClient) {
       const me = toUser(meRecord);
       const [usersList, swipesList] = await Promise.all([
         users().getList(1, 200, { filter: "status = 'solo' && name != ''" }),
-        collection().getList(1, 200, { filter: `fromUser = '${meId}'` }),
+        collection().getList(1, 200, {
+          filter: `fromUser = ${pbEscape(meId)}`,
+        }),
       ]);
       return buildDeck({
         me: {

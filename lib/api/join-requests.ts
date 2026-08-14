@@ -12,6 +12,7 @@ import type {
 } from "@/types/squadup";
 import type { PbClient, UnsubscribeFunc } from "@/lib/api/types";
 import { normalizeError } from "@/lib/api/error";
+import { pbEscape } from "./filter";
 
 export interface RequestToJoinInput {
   roleAppliedFor: PrimaryRole;
@@ -65,7 +66,7 @@ export function createJoinRequestsApi(client: PbClient) {
   ): Promise<JoinRequest[]> {
     try {
       const filter = options.teamId
-        ? `team = '${options.teamId}' && status = 'pending'`
+        ? `team = ${pbEscape(options.teamId)} && status = 'pending'`
         : "applicant = @request.auth.id";
       const list = await collection().getList(1, 50, {
         sort: "-created",
@@ -109,7 +110,7 @@ export function createJoinRequestsApi(client: PbClient) {
         seen.add(id);
         onDecision(toJoinRequest(event.record));
       },
-      { filter: `applicant = '${meId}'` }
+      { filter: `applicant = ${pbEscape(meId)}` }
     );
   }
 

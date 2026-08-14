@@ -41,7 +41,7 @@ describe("realtime api — subscribeMatches", () => {
       "*",
       expect.any(Function),
       expect.objectContaining({
-        filter: "userA = 'u-me' || userB = 'u-me'",
+        filter: 'userA = "u-me" || userB = "u-me"',
         expand: "userA,userB",
       })
     );

@@ -89,7 +89,7 @@ describe("swipes api — fetchDeck", () => {
     expect(swipesService.getList).toHaveBeenCalledWith(
       1,
       200,
-      expect.objectContaining({ filter: "fromUser = 'u-me'" })
+      expect.objectContaining({ filter: 'fromUser = "u-me"' })
     );
     // Sorted by score desc; swiped user excluded.
     expect(deck.map((c) => c.id)).toEqual(["u-a", "u-b"]);
