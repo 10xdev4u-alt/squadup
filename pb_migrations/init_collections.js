@@ -231,6 +231,7 @@ migrate(
           maxSelect: 20,
         },
         { type: "url", name: "chatLink" },
+        { type: "date", name: "deadline", required: true },
       ],
       indexes: [
         "CREATE UNIQUE INDEX idx_teams_inviteCode ON teams (inviteCode)",

@@ -13,6 +13,8 @@ const {
   isMatchMember,
   hasPendingRequest,
   isSelfJoin,
+  TEAM_DEADLINE_HOURS,
+  deadlineFor,
 
   orderMatchPair,
 } = require("./domain.js");
@@ -187,6 +189,10 @@ onRecordBeforeCreateRequest(async (e) => {
     inviteCode = generateInviteCode();
   }
   rec.set("inviteCode", inviteCode);
+
+  // Countdown target — server-owned like the rest (§4B, §9).
+  const createdAt = new Date(rec.get("created") || Date.now());
+  rec.set("deadline", deadlineFor(createdAt));
 
   // Flip the creator to in_team BEFORE the team saves: if the save fails they
   // can retry, and the deck (status='solo') already excludes them on success.
