@@ -302,3 +302,103 @@ describe("teams api — chatLink visibility (§8 privacy, closes the I1 flag)", 
     expect(detail.chatLink).toBeNull();
   });
 });
+
+describe("teams api — fetchAdminTeams", () => {
+  it("lists teams without the §10 directory filter (admin sees all)", async () => {
+    const service = makeService({
+      getList: vi.fn(async () => ({
+        page: 1,
+        perPage: 50,
+        totalItems: 2,
+        totalPages: 1,
+        items: [
+          {
+            id: "t1",
+            name: "Alpha Force",
+            status: "open",
+            rolesNeeded: ["Developer"],
+            leader: "u-lead",
+            members: ["u-lead", "u-ana"],
+            deadline: "2026-09-01 00:00:00.000Z",
+            createdAt: "2026-08-01 00:00:00.000Z",
+            problemStatement: "p1",
+            expand: {
+              problemStatement: {
+                id: "p1",
+                title: "Health AI",
+                domain: "Software",
+                description: "d",
+                source: "faculty",
+              },
+              leader: { id: "u-lead", name: "Arjun Patel" },
+              members: [
+                { id: "u-lead", name: "Arjun Patel" },
+                { id: "u-ana", name: "Ana Souza" },
+              ],
+            },
+          },
+          {
+            id: "t2",
+            name: "Beta Builders",
+            status: "closed",
+            rolesNeeded: [],
+            leader: "u-bob",
+            members: ["u-bob"],
+            deadline: "2026-09-01 00:00:00.000Z",
+            createdAt: "2026-07-01 00:00:00.000Z",
+            problemStatement: "p2",
+            expand: {
+              problemStatement: {
+                id: "p2",
+                title: "Drone Swarm",
+                domain: "Hardware",
+                description: "d",
+                source: "faculty",
+              },
+              leader: { id: "u-bob", name: "Bob Chen" },
+              members: [{ id: "u-bob", name: "Bob Chen" }],
+            },
+          },
+        ],
+      })),
+    });
+    const api = createTeamsApi(makeClientWith(service));
+
+    const result = await api.fetchAdminTeams(1, 50);
+
+    expect(service.getList).toHaveBeenCalledWith(
+      1,
+      50,
+      expect.objectContaining({ filter: "" })
+    );
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0]).toMatchObject({
+      id: "t1",
+      name: "Alpha Force",
+      status: "open",
+      domain: "Software",
+      memberCount: 2,
+      memberNames: ["Arjun Patel", "Ana Souza"],
+      deadline: "2026-09-01 00:00:00.000Z",
+    });
+    expect(result.items[1]?.status).toBe("closed");
+  });
+
+  it("paginates like other list endpoints", async () => {
+    const service = makeService({
+      getList: vi.fn(async () => ({
+        page: 2,
+        perPage: 25,
+        totalItems: 30,
+        totalPages: 2,
+        items: [],
+      })),
+    });
+    const api = createTeamsApi(makeClientWith(service));
+
+    const result = await api.fetchAdminTeams(2, 25);
+
+    expect(result.page).toBe(2);
+    expect(result.totalItems).toBe(30);
+  });
+});

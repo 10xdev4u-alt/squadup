@@ -58,6 +58,21 @@ export interface TeamDetail {
   chatLink: string | null;
 }
 
+/**
+ * §4E admin table row — read-only. domain + memberCount are computed for the
+ * admin view; chatLink/inviteCode stay out (never needed by the admin).
+ */
+export interface AdminTeamRow {
+  id: string;
+  name: string;
+  status: TeamStatus;
+  domain: ProblemDomain;
+  memberCount: number;
+  memberNames: string[];
+  deadline: string;
+  createdAt: string;
+}
+
 function toTeamCard(record: Record<string, unknown>): TeamCard {
   return {
     id: String(record.id),
@@ -105,6 +120,28 @@ function toTeamDetail(
     deadline: String(record.deadline ?? ""),
     // §8 privacy: the chat link is members-only (closes the I1 flag).
     chatLink: isMember && record.chatLink ? String(record.chatLink) : null,
+  };
+}
+
+function toAdminTeamRow(record: Record<string, unknown>): AdminTeamRow {
+  const expand = (record.expand ?? {}) as Record<string, unknown>;
+  const statement = expand.problemStatement as
+    Record<string, unknown> | undefined;
+  const members = Array.isArray(record.members) ? record.members : [];
+  const memberNames = Array.isArray(expand.members)
+    ? (expand.members as unknown[]).map((m) =>
+        String((m as Record<string, unknown>).name ?? "")
+      )
+    : [];
+  return {
+    id: String(record.id),
+    name: String(record.name),
+    status: record.status as TeamStatus,
+    domain: (statement?.domain as ProblemDomain) ?? "",
+    memberCount: members.length,
+    memberNames,
+    deadline: String(record.deadline ?? ""),
+    createdAt: String(record.createdAt ?? ""),
   };
 }
 
@@ -180,6 +217,27 @@ export function createTeamsApi(client: PbClient) {
   }
 
   /**
+   * §4E admin table — intentionally NO directory filter (admins see closed
+   * teams too). Read-only: this module exposes no admin mutation surface.
+   */
+  async function fetchAdminTeams(
+    page = 1,
+    perPage?: number
+  ): Promise<Paginated<AdminTeamRow>> {
+    try {
+      const { page: p, perPage: pp } = clampPageParams(page, perPage);
+      const result = await collection().getList(p, pp, {
+        sort: "-created",
+        filter: "",
+        expand: "problemStatement,leader,members",
+      });
+      return toPaginated(result, toAdminTeamRow);
+    } catch (err) {
+      throw normalizeError(err);
+    }
+  }
+
+  /**
    * Leader-only settings (the updateRule enforces who). Sends only
    * client-owned fields — name/leader/inviteCode never leave the client.
    */
@@ -210,6 +268,7 @@ export function createTeamsApi(client: PbClient) {
     fetchTeamCard,
     fetchTeamCards,
     fetchTeamDetail,
+    fetchAdminTeams,
     createTeam,
     fetchProblemStatements,
     updateTeamSettings,
