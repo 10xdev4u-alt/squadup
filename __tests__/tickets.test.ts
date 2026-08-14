@@ -1,57 +1,125 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTicketsApi } from "@/lib/api/tickets";
-import { makeClient, makeService } from "@/__tests__/helpers/client";
+import { makeAuthStore, makeService } from "@/__tests__/helpers/client";
+import type { PbClient, PbRecordService } from "@/lib/api/types";
 
-const ticketRecord = {
-  id: "tk1",
-  team: "t1",
-  title: "Need help with PocketBase rules",
-  status: "open",
-  assignedMentor: null,
-  createdAt: "2026-08-13 10:00:00.000Z",
-};
+function makeClient(
+  overrides: {
+    tickets?: Record<string, unknown>[];
+    messages?: Record<string, unknown>[];
+  } = {}
+): {
+  client: PbClient;
+  ticketsService: PbRecordService;
+  messagesService: PbRecordService;
+} {
+  const ticketsService = makeService({
+    getList: vi.fn(async () => ({
+      page: 1,
+      perPage: 20,
+      totalItems: overrides.tickets?.length ?? 0,
+      totalPages: 1,
+      items: overrides.tickets ?? [],
+    })),
+    update: vi.fn(async () => ({})),
+  });
+  const messagesService = makeService({
+    getList: vi.fn(async () => ({
+      page: 1,
+      perPage: 200,
+      totalItems: overrides.messages?.length ?? 0,
+      totalPages: 1,
+      items: overrides.messages ?? [],
+    })),
+    create: vi.fn(async () => ({})),
+  });
+  const client: PbClient = {
+    collection: vi.fn((name: string) =>
+      name === "ticket_messages" ? messagesService : ticketsService
+    ),
+    authStore: makeAuthStore({ record: { id: "u-me" }, isValid: true }),
+  };
+  return { client, ticketsService, messagesService };
+}
 
-describe("tickets api", () => {
-  it("creates a ticket sending only team and title", async () => {
-    const service = makeService({ create: vi.fn(async () => ticketRecord) });
-    const api = createTicketsApi(makeClient(service));
+describe("tickets api — updateTicketStatus", () => {
+  it("moves a ticket between statuses (mentor-gated server-side)", async () => {
+    const { client, ticketsService } = makeClient();
+    const api = createTicketsApi(client);
 
-    const ticket = await api.createTicket({
-      team: "t1",
-      title: "Need help with PocketBase rules",
+    await api.updateTicketStatus("t1", "resolved");
+
+    expect(ticketsService.update).toHaveBeenCalledWith("t1", {
+      status: "resolved",
     });
+  });
+});
 
-    // §8: status/assignedMentor are server-owned.
-    expect(service.create).toHaveBeenCalledWith({
-      team: "t1",
-      title: "Need help with PocketBase rules",
+describe("tickets api — fetchMentorInbox", () => {
+  it("lists all tickets for mentors (server rule scopes it)", async () => {
+    const { client, ticketsService } = makeClient({
+      tickets: [
+        {
+          id: "tk1",
+          team: "t1",
+          title: "Help with PPT",
+          status: "open",
+          assignedMentor: "",
+          createdAt: "2026-08-14T08:00:00.000Z",
+        },
+      ],
     });
-    expect(ticket).toEqual(ticketRecord);
+    const api = createTicketsApi(client);
+
+    const inbox = await api.fetchMentorInbox();
+
+    expect(ticketsService.getList).toHaveBeenCalledWith(
+      1,
+      100,
+      expect.objectContaining({ sort: "-created" })
+    );
+    expect(inbox.items[0]).toMatchObject({
+      id: "tk1",
+      title: "Help with PPT",
+      status: "open",
+    });
+  });
+});
+
+describe("tickets api — messages", () => {
+  it("creates a message with only the ticket + text (sender is server-derived)", async () => {
+    const { client, messagesService } = makeClient();
+    const api = createTicketsApi(client);
+
+    await api.createTicketMessage("tk1", "Can you review our deck?");
+
+    expect(messagesService.create).toHaveBeenCalledWith({
+      ticket: "tk1",
+      message: "Can you review our deck?",
+    });
   });
 
-  it("lists a team's tickets paginated with a team filter", async () => {
-    const service = makeService({
-      getList: vi.fn(async () => ({
-        page: 1,
-        perPage: 20,
-        totalItems: 1,
-        totalPages: 1,
-        items: [ticketRecord],
-      })),
+  it("fetches the thread oldest-first", async () => {
+    const { client, messagesService } = makeClient({
+      messages: [
+        {
+          id: "m1",
+          ticket: "tk1",
+          sender: "u-a",
+          message: "Hi",
+          createdAt: "2026-08-14T08:00:00.000Z",
+        },
+      ],
     });
-    const api = createTicketsApi(makeClient(service));
+    const api = createTicketsApi(client);
 
-    const result = await api.fetchTickets("t1", 1);
+    const messages = await api.fetchTicketMessages("tk1");
 
-    expect(service.getList).toHaveBeenCalledWith(
+    expect(messagesService.getList).toHaveBeenCalledWith(
       1,
-      20,
-      expect.objectContaining({ filter: expect.stringContaining("team") })
+      200,
+      expect.objectContaining({ sort: "created" })
     );
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0]).toMatchObject({
-      id: "tk1",
-      title: "Need help with PocketBase rules",
-    });
+    expect(messages).toHaveLength(1);
   });
 });
