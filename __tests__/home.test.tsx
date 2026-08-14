@@ -41,10 +41,19 @@ describe("home page", () => {
 
   it("links a signed-out visitor to the auth page", () => {
     render(<Home />);
-    expect(screen.getByRole("link", { name: /get started/i })).toHaveAttribute(
-      "href",
-      "/auth"
-    );
+    const getStarted = screen.getAllByRole("link", { name: /get started/i });
+    expect(getStarted.length).toBeGreaterThan(0);
+    expect(getStarted[0]).toHaveAttribute("href", "/auth");
+  });
+
+  it("renders the landing sections for signed-out visitors", () => {
+    render(<Home />);
+    expect(
+      screen.getByRole("heading", { name: /everything you need to ship/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /how it works/i })
+    ).toBeInTheDocument();
   });
 
   it("links a solo user to discover", async () => {

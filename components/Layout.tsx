@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import TeamNavLink from "@/components/team-nav-link";
 import AdminNavLink from "@/components/admin-nav-link";
+import Footer from "@/components/footer";
 
 const NAV_LINKS = [
   { href: "/discover", label: "Discover" },
@@ -69,6 +70,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <main id="main-content" className="mx-auto max-w-7xl px-6 py-10">
         {children}
       </main>
+      <Footer />
     </div>
   );
 }
