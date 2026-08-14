@@ -27,7 +27,7 @@ export default function Discover() {
         </p>
       )}
 
-      <div className="mt-6 max-w-md">
+      <div className="mx-auto mt-8 max-w-lg">
         {loading ? (
           <DeckSkeleton />
         ) : empty ? (
