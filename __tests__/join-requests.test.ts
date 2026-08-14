@@ -134,7 +134,7 @@ describe("join requests api — subscribeMyRequests", () => {
     expect(service.subscribe).toHaveBeenCalledWith(
       "*",
       expect.any(Function),
-      expect.objectContaining({ filter: "applicant = 'u-me'" })
+      expect.objectContaining({ filter: 'applicant = "u-me"' })
     );
   });
 

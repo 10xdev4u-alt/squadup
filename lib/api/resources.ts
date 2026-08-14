@@ -12,6 +12,7 @@ import {
   type Paginated,
 } from "@/lib/api/pagination";
 import { normalizeError } from "@/lib/api/error";
+import { pbEscape } from "./filter";
 
 function toResource(record: Record<string, unknown>): Resource {
   return {
@@ -44,7 +45,7 @@ export function createResourcesApi(client: PbClient) {
     try {
       const { page: p, perPage } = clampPageParams(page, PER_PAGE);
       const result = await resources().getList(p, perPage, {
-        filter: `team = '${teamId}'`,
+        filter: `team = ${pbEscape(teamId)}`,
         sort: "-created",
       });
       return toPaginated(result, toResource);

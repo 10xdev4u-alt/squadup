@@ -106,7 +106,7 @@ describe("teams api — fetchTeamCards", () => {
     expect(service.getList).toHaveBeenCalledWith(
       1,
       1,
-      expect.objectContaining({ filter: "inviteCode = 'INVITE1'" })
+      expect.objectContaining({ filter: 'inviteCode = "INVITE1"' })
     );
     expect(result?.name).toBe("Navigators");
     // §8: the code never crosses back — only the team id/name do.
@@ -164,7 +164,7 @@ describe("teams api — fetchTeamCards", () => {
       1,
       1,
       expect.objectContaining({
-        filter: "members ?~ 'u-me'",
+        filter: 'members ?~ "u-me"',
       })
     );
     expect(result?.name).toBe("Navigators");

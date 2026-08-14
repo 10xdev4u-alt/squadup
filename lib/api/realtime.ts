@@ -6,6 +6,7 @@
 // ============================================================================
 
 import type { PbClient, UnsubscribeFunc } from "@/lib/api/types";
+import { pbEscape } from "./filter";
 
 export interface MatchEvent {
   id: string;
@@ -46,7 +47,7 @@ export function createRealtimeApi(client: PbClient) {
         onMatch(toMatchEvent(event.record, meId));
       },
       {
-        filter: `userA = '${meId}' || userB = '${meId}'`,
+        filter: `userA = ${pbEscape(meId)} || userB = ${pbEscape(meId)}`,
         expand: "userA,userB",
       }
     );
