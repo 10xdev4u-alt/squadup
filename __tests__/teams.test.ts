@@ -112,6 +112,7 @@ describe("teams api — fetchTeamDetail", () => {
       },
       leader: { id: "u-lead", name: "Arjun Patel" },
       deadline: "2026-08-16T12:00:00.000Z",
+      chatLink: null,
       members: [
         { id: "u-lead", name: "Arjun Patel" },
         { id: "u-dev", name: "Priya Sharma" },
@@ -191,5 +192,113 @@ describe("teams api — fetchProblemStatements", () => {
   it("returns an empty list when none exist", async () => {
     const api = createTeamsApi(makeClientWith(makeService()));
     expect(await api.fetchProblemStatements()).toEqual([]);
+  });
+});
+
+const UPDATED_TEAM = () => ({
+  id: "t1",
+  name: "Navigators",
+  status: "closed",
+  rolesNeeded: ["Developer"],
+  chatLink: "https://chat.example/invite",
+  leader: "u-lead",
+  members: ["u-lead", "u-a"],
+  expand: {
+    leader: { id: "u-lead", name: "Arjun Patel" },
+    members: [
+      { id: "u-lead", name: "Arjun Patel" },
+      { id: "u-a", name: "Priya Sharma" },
+    ],
+  },
+});
+
+describe("teams api — updateTeamSettings", () => {
+  it("sends only client-owned fields (chatLink, status, deadline, members)", async () => {
+    const service = makeService({ update: vi.fn(async () => UPDATED_TEAM()) });
+    const api = createTeamsApi(makeClientWith(service));
+
+    await api.updateTeamSettings("t1", {
+      chatLink: "https://chat.example/invite",
+      status: "closed",
+      deadline: "2026-08-16T12:00:00.000Z",
+      members: ["u-lead", "u-a"],
+    });
+
+    expect(service.update).toHaveBeenCalledWith("t1", {
+      chatLink: "https://chat.example/invite",
+      status: "closed",
+      deadline: "2026-08-16T12:00:00.000Z",
+      members: ["u-lead", "u-a"],
+    });
+  });
+
+  it("never sends name/leader/inviteCode", async () => {
+    const updateMock = vi.fn(
+      async (_id: string, _body: Record<string, unknown>) => UPDATED_TEAM()
+    );
+    const service = makeService({ update: updateMock });
+    const api = createTeamsApi(makeClientWith(service));
+
+    await api.updateTeamSettings("t1", { chatLink: "https://x.example" });
+
+    const sent = updateMock.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(sent.chatLink).toBe("https://x.example");
+    expect(sent).not.toHaveProperty("name");
+    expect(sent).not.toHaveProperty("leader");
+    expect(sent).not.toHaveProperty("inviteCode");
+  });
+});
+
+describe("teams api — chatLink visibility (§8 privacy, closes the I1 flag)", () => {
+  it("exposes chatLink to a member of the team", async () => {
+    const service = makeService({
+      getOne: vi.fn(async () => ({
+        id: "t1",
+        name: "Navigators",
+        status: "open",
+        rolesNeeded: ["Developer"],
+        chatLink: "https://chat.example/invite",
+        leader: "u-lead",
+        members: ["u-lead", "u-me"],
+        expand: {
+          leader: { id: "u-lead", name: "Arjun Patel" },
+          members: [
+            { id: "u-lead", name: "Arjun Patel" },
+            { id: "u-me", name: "Priya Sharma" },
+          ],
+        },
+      })),
+    });
+    const api = createTeamsApi(makeClientWith(service));
+
+    const detail = await api.fetchTeamDetail("t1");
+
+    expect(detail.chatLink).toBe("https://chat.example/invite");
+  });
+
+  it("hides chatLink from a non-member", async () => {
+    const service = makeService({
+      getOne: vi.fn(async () => ({
+        id: "t1",
+        name: "Navigators",
+        status: "open",
+        rolesNeeded: ["Developer"],
+        chatLink: "https://chat.example/invite",
+        leader: "u-lead",
+        members: ["u-lead", "u-other"],
+        expand: {
+          leader: { id: "u-lead", name: "Arjun Patel" },
+          members: [
+            { id: "u-lead", name: "Arjun Patel" },
+            { id: "u-other", name: "Sara Khan" },
+          ],
+        },
+      })),
+    });
+    const api = createTeamsApi(makeClientWith(service));
+
+    const detail = await api.fetchTeamDetail("t1");
+
+    expect(detail.chatLink).toBeNull();
   });
 });

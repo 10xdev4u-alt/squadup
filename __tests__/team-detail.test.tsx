@@ -49,6 +49,7 @@ function makeDetail(overrides: Partial<TeamDetail> = {}): TeamDetail {
     leader: { id: "u-lead", name: "Arjun Patel" },
     members: [{ id: "u-lead", name: "Arjun Patel" }],
     deadline: "2026-08-16T12:00:00.000Z",
+    chatLink: null,
     ...overrides,
   };
 }
