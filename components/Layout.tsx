@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
+import { Menu, X } from "lucide-react";
 import TeamNavLink from "@/components/team-nav-link";
 import AdminNavLink from "@/components/admin-nav-link";
 import Footer from "@/components/footer";
@@ -39,6 +40,48 @@ function NavLink({ href, label }: { href: string; label: string }) {
   );
 }
 
+function MobileNav() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="md:hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="mobile-nav"
+        aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+        className="flex h-9 w-9 items-center justify-center rounded-control text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      >
+        {open ? (
+          <X className="h-5 w-5" aria-hidden="true" />
+        ) : (
+          <Menu className="h-5 w-5" aria-hidden="true" />
+        )}
+      </button>
+      {open ? (
+        <nav
+          id="mobile-nav"
+          aria-label="Mobile"
+          className="absolute inset-x-0 top-14 z-40 border-b border-border bg-background/95 backdrop-blur"
+        >
+          <ul className="space-y-1 px-6 py-4">
+            {NAV_LINKS.map((link) => (
+              <NavLink key={link.href} href={link.href} label={link.label} />
+            ))}
+            <li className="pt-2">
+              <TeamNavLink />
+            </li>
+            <li>
+              <AdminNavLink />
+            </li>
+          </ul>
+        </nav>
+      ) : null}
+    </div>
+  );
+}
+
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -49,14 +92,14 @@ export default function Layout({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
+        <div className="relative mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
           <Link
             href="/"
             className="font-display text-base font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             SquadUp
           </Link>
-          <nav aria-label="Main">
+          <nav aria-label="Main" className="hidden md:block">
             <ul className="flex items-center gap-1">
               {NAV_LINKS.map((link) => (
                 <NavLink key={link.href} href={link.href} label={link.label} />
@@ -65,6 +108,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               <AdminNavLink />
             </ul>
           </nav>
+          <MobileNav />
         </div>
       </header>
       <main id="main-content" className="mx-auto max-w-7xl px-6 py-10">

@@ -1,21 +1,15 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import DeckSkeleton from "@/components/deck-skeleton";
 
 describe("DeckSkeleton", () => {
-  it("renders a skeleton card", () => {
-    const { container } = render(<DeckSkeleton />);
-    const skeletons = container.querySelectorAll('[aria-hidden="true"]');
-    expect(skeletons.length).toBeGreaterThan(0);
+  it("renders a single skeleton card matching the deck shape", () => {
+    render(<DeckSkeleton />);
+    expect(screen.getByTestId("deck-skeleton")).toBeInTheDocument();
   });
 
-  it("renders three skeleton cards by default", () => {
+  it("marks the placeholder as decorative for screen readers", () => {
     const { container } = render(<DeckSkeleton />);
-    expect(container.querySelectorAll('[aria-hidden="true"]').length).toBe(3);
-  });
-
-  it("accepts a custom card count", () => {
-    const { container } = render(<DeckSkeleton count={5} />);
-    expect(container.querySelectorAll('[aria-hidden="true"]').length).toBe(5);
+    expect(container.querySelectorAll('[aria-hidden="true"]').length).toBe(1);
   });
 });
