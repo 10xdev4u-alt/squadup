@@ -52,13 +52,6 @@ export function scoreCandidate(me: DeckMe, candidate: User): number {
   return overlap * SKILL_OVERLAP_WEIGHT + boost;
 }
 
-function isSwiped(pair: SwipePair, userId: string): boolean {
-  return (
-    (pair.fromUser === userId || pair.toUser === userId) &&
-    pair.fromUser !== pair.toUser
-  );
-}
-
 /**
  * Builds the sorted deck.
  * - `candidates` should already be `status = 'solo'` (server-side filter).
@@ -72,10 +65,18 @@ export function buildDeck(input: {
 }): DeckCandidate[] {
   const { me, candidates, swipedPairs } = input;
 
+  // Index the swiped ids once (O(m)) instead of scanning the pair list for
+  // every candidate (O(n * m)) — same exclusion semantics as isSwiped.
+  const blocked = new Set<string>();
+  for (const p of swipedPairs) {
+    if (p.fromUser !== p.toUser) {
+      blocked.add(p.fromUser);
+      blocked.add(p.toUser);
+    }
+  }
+
   const deck = candidates
-    .filter(
-      (c) => c.id !== me.id && !swipedPairs.some((p) => isSwiped(p, c.id))
-    )
+    .filter((c) => c.id !== me.id && !blocked.has(c.id))
     .map((c) => ({
       id: c.id,
       name: c.name,

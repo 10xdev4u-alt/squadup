@@ -25,6 +25,10 @@ const swatches = Object.entries(palette) as Array<
 >;
 
 export default function Design() {
+  // Dev-only token reference — never serve the design system in prod (§4.4).
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
   return (
     <Layout>
       <h1 className="text-3xl font-bold">Design Tokens</h1>
