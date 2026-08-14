@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import PageHeader from "@/components/page-header";
 import EmptyState from "@/components/empty-state";
 import { useRequireAuth } from "@/lib/use-require-auth";
-import { api } from "@/lib/api";
+import { api, getApiErrorMessage } from "@/lib/api";
 import { timeAgo } from "@/lib/time-ago";
 import type { MatchCard } from "@/lib/api/matches";
 
@@ -13,6 +13,7 @@ export default function Matches() {
   useRequireAuth();
   const [cards, setCards] = useState<MatchCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -24,8 +25,11 @@ export default function Matches() {
           setLoading(false);
         }
       })
-      .catch(() => {
-        if (!cancelled) setLoading(false);
+      .catch((err) => {
+        if (!cancelled) {
+          setError(getApiErrorMessage(err));
+          setLoading(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -40,7 +44,14 @@ export default function Matches() {
       />
 
       <div className="mt-6">
-        {loading ? (
+        {error ? (
+          <div
+            role="alert"
+            className="rounded-card border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
+          >
+            {error}
+          </div>
+        ) : loading ? (
           <div className="animate-pulse space-y-2 rounded-card border border-border bg-card p-4">
             {[0, 1, 2].map((i) => (
               <div

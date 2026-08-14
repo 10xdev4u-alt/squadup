@@ -5,13 +5,11 @@
 // ever renders the outputs of lib/analytics.ts.
 // ============================================================================
 
-import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/Layout";
 import EmptyState from "@/components/empty-state";
-import { useRequireAuth } from "@/lib/use-require-auth";
+import { useRequireAdmin } from "@/lib/use-require-auth";
 import { api, getApiErrorMessage } from "@/lib/api";
-import { getClient } from "@/lib/api/client";
 import {
   aggregateActivity,
   aggregateDomains,
@@ -26,22 +24,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function AdminAnalyticsPage() {
-  const authed = useRequireAuth();
-  const router = useRouter();
+  const authed = useRequireAdmin();
   const [data, setData] = useState<AdminAnalytics | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Admin gate — same as the teams table (flag is PB-dashboard-seeded).
-  useEffect(() => {
-    const record = getClient().authStore.record as {
-      id: string;
-      admin?: boolean;
-    } | null;
-    if (authed && record && record.admin !== true) {
-      router.replace("/");
-    }
-  }, [authed, router]);
 
   useEffect(() => {
     let cancelled = false;
