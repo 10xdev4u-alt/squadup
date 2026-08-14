@@ -98,3 +98,19 @@ export function isMatchMember(match, userId) {
   if (!match || !userId) return false;
   return match.userA === userId || match.userB === userId;
 }
+
+/**
+ * True when the applicant already has a pending join request for the team —
+ * duplicates are rejected (§2 Mode 2: one request at a time per team).
+ */
+export function hasPendingRequest(requests, teamId, applicantId) {
+  return requests.some(
+    (r) =>
+      r.team === teamId && r.applicant === applicantId && r.status === "pending"
+  );
+}
+
+/** True when the applicant is the team's own leader (self-join guard). */
+export function isSelfJoin(team, applicantId) {
+  return Boolean(team && applicantId && team.leader === applicantId);
+}

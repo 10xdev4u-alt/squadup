@@ -11,6 +11,8 @@ const {
   findUserTeam,
   generateInviteCode,
   isMatchMember,
+  hasPendingRequest,
+  isSelfJoin,
 
   orderMatchPair,
 } = require("./domain.js");
@@ -212,3 +214,89 @@ onRecordBeforeCreateRequest(async (e) => {
   }
   rec.set("sender", senderId);
 }, "match_messages");
+
+// join_requests: creating one derives status server-side and enforces the
+// single-team, duplicate, and self-join guards (§2 Mode 2).
+const ALREADY_IN_TEAM_MSG = "You are already in a team.";
+const DUPLICATE_REQUEST_MSG =
+  "You already have a pending request for this team.";
+const SELF_JOIN_MSG = "You are the leader of this team.";
+const TEAM_FULL_MSG = "This team is already full.";
+
+onRecordBeforeCreateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const applicantId = e.request.auth && e.request.auth.id;
+  if (!applicantId) {
+    throw new Error("Authentication required.");
+  }
+
+  const team = await dao.findRecordById("teams", rec.get("team"));
+  if (isSelfJoin({ leader: team.get("leader") }, applicantId)) {
+    throw new Error(SELF_JOIN_MSG);
+  }
+  if (team.get("members").length >= 20) {
+    throw new Error(TEAM_FULL_MSG);
+  }
+
+  const allTeams = await dao.findRecordsByFilter(
+    "teams",
+    "id != ''",
+    1000,
+    0,
+    {}
+  );
+  if (findUserTeam(allTeams, applicantId)) {
+    throw new Error(ALREADY_IN_TEAM_MSG);
+  }
+
+  const existing = await dao.findRecordsByFilter(
+    "join_requests",
+    "team = {:team} && applicant = {:applicant}",
+    20,
+    0,
+    { team: rec.get("team"), applicant: applicantId }
+  );
+  if (hasPendingRequest(existing, rec.get("team"), applicantId)) {
+    throw new Error(DUPLICATE_REQUEST_MSG);
+  }
+
+  // Server-owned fields — never trust the client body (§8).
+  rec.set("applicant", applicantId);
+  rec.set("status", "pending");
+}, "join_requests");
+
+// join_requests: only the leader may decide; accept adds the member and
+// flips their status to in_team (leaves the deck, same as team creation).
+const REQUEST_NOT_PENDING_MSG = "This request has already been decided.";
+
+onRecordBeforeUpdateRequest(async (e) => {
+  const dao = e.app.dao();
+  const rec = e.record;
+  const status = rec.get("status");
+  const original = e.record.getOriginal(); // PB 0.23+ — DB state before save
+  const previous = original ? original.get("status") : rec.get("status");
+  if (previous !== "pending") {
+    throw new Error(REQUEST_NOT_PENDING_MSG);
+  }
+  if (status !== "accepted" && status !== "rejected") {
+    throw new Error(REQUEST_NOT_PENDING_MSG);
+  }
+
+  if (status === "accepted") {
+    const team = await dao.findRecordById("teams", rec.get("team"));
+    const members = team.get("members") || [];
+    if (members.length >= 20) {
+      throw new Error(TEAM_FULL_MSG);
+    }
+    const applicantId = rec.get("applicant");
+    if (!members.includes(applicantId)) {
+      members.push(applicantId);
+      team.set("members", members);
+      await dao.save(team);
+    }
+    const user = await dao.findRecordById("users", applicantId);
+    user.set("status", "in_team");
+    await dao.save(user);
+  }
+}, "join_requests");
